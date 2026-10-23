@@ -12,6 +12,8 @@ import { fileDiEsempio, EXCEL_ESEMPIO, MODELLO_ESEMPIO, OPZIONI_ESEMPIO } from '
 const ICONA_GIU = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>';
 const ICONA_CARICA = '<svg class="drop-icona" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>';
 const MAX_RIGHE = 400;
+// colonne mostrate per prime tra i segnaposto dell'Excel
+const UTILI = ['id', 'codice domanda', 'codice inpa', 'cognome', 'last name', 'nome', 'first name', 'nominativo', 'cf', 'codice fiscale', 'external id', 'id elaborato', 'test code', 'matricola', 'protocollo', 'data di nascita', 'nuovo nome'];
 const CHIAVE_REGOLE = 'cs.rinomina.regole';
 const PDF_BASE = { attivo: false, cosa: 'cf', etichetta: '', parole: 1, regex: '', tutte: false };
 const MOD_BASE = { attivo: false, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID} – {nominativo}', corpo: true, maiuscole: 'su' };
@@ -35,7 +37,7 @@ const S = {
   excel: null,           // { nome, intestazioni, righe, fogli?, foglio?, modo, col, esempio }
   pdf: { ...PDF_BASE },
   testi: new Map(), lettura: null, giro: 0,
-  mod: { ...MOD_BASE }, analisi: new Map(), analizzando: null, giroMod: 0,
+  mod: { ...MOD_BASE }, analisi: new Map(), analizzando: null, giroMod: 0, tutteColonne: false,
   manuali: new Map(), esclusi: new Set(),
   esito: { risultati: [], sconosciuti: [] }, abbinati: null,
   prec: {}, animaRighe: true,
@@ -189,9 +191,21 @@ export async function montaRinomina(el, ctx) {
       const usato = S.modello.toLowerCase().includes('{' + g.t.toLowerCase() + '}');
       return `<button type="button" class="rp-gettone${usato ? ' usato' : ''}" data-t="${escHtml(g.t)}" aria-pressed="${usato}" title="${escHtml(g.d)}${usato ? ' · clicca di nuovo per toglierlo' : ''}">{${escHtml(g.t)}}${usato ? '<span class="rp-togli" aria-hidden="true">×</span>' : ''}</button>`;
     }).join('')}</div>` : '';
-    const dallExcel = S.excel ? S.excel.intestazioni.filter(Boolean).map(h => ({ t: h, d: 'colonna dell\'Excel collegato' })) : [];
-    if (S.excel && colonneNominativo(S.excel.intestazioni.map(norm)).ok && !S.excel.intestazioni.some(h => norm(h) === 'nominativo')) dallExcel.unshift({ t: 'nominativo', d: 'cognome e nome dall\'Excel' });
-    $('#rp-gettoni').innerHTML = gruppo('Dal file', SEGNAPOSTO_FILE) + gruppo("Dall'Excel", dallExcel) + gruppo('Dal PDF', S.pdf.attivo ? SEGNAPOSTO_PDF : []) +
+    // colonne dell'Excel: prima quelle utili per i nomi, le altre dietro «altre colonne»; le colonne vuote non compaiono
+    let dallExcel = [], altre = [];
+    if (S.excel) {
+      const x = S.excel, mod = (S.modello + ' ' + (S.mod.attivo ? S.mod.nuovo : '')).toLowerCase();
+      const piene = x.intestazioni.map((h, i) => h && x.righe.some(r => !isEmpty(r[i]) && String(r[i]).trim() !== ''));
+      x.intestazioni.forEach((h, i) => {
+        if (!h || !piene[i]) return;
+        const g = { t: h, d: 'colonna dell\'Excel collegato' };
+        (UTILI.includes(norm(h)) || i === x.col || mod.includes('{' + h.toLowerCase() + '}') ? dallExcel : altre).push(g);
+      });
+      if (colonneNominativo(x.intestazioni.map(norm)).ok && !x.intestazioni.some(h => norm(h) === 'nominativo')) dallExcel.unshift({ t: 'nominativo', d: 'cognome e nome dall\'Excel' });
+      if (!dallExcel.length) { dallExcel = altre; altre = []; }
+    }
+    const piu = altre.length ? `<button type="button" class="linkbtn rp-altre" id="rp-altre-col" aria-expanded="${S.tutteColonne}">${S.tutteColonne ? 'meno colonne' : `altre ${altre.length} colonne`}</button>` : '';
+    $('#rp-gettoni').innerHTML = gruppo('Dal file', SEGNAPOSTO_FILE) + gruppo("Dall'Excel", S.tutteColonne ? dallExcel.concat(altre) : dallExcel).replace(/<\/div>$/, piu + '</div>') + gruppo('Dal PDF', S.pdf.attivo ? SEGNAPOSTO_PDF : []) +
       (S.esito.sconosciuti.length ? `<p class="msg err">Segnaposto non riconosciuto: ${S.esito.sconosciuti.map(t => '{' + escHtml(t) + '}').join(', ')}. Controlla il nome o collega l'Excel giusto.</p>` : '');
   }
   function disegnaProva() {
@@ -562,6 +576,7 @@ export async function montaRinomina(el, ctx) {
   const modello = $('#rp-modello');
   modello.addEventListener('input', () => { S.modello = modello.value; ricalcolaPresto(); ctx.emetti('modello-cambiato'); });
   $('#rp-gettoni').addEventListener('click', e => {
+    if (e.target.closest('#rp-altre-col')) { S.tutteColonne = !S.tutteColonne; disegnaGettoni(); return; }
     const b = e.target.closest('[data-t]'); if (!b) return;
     const tok = '{' + b.dataset.t + '}';
     // già nel modello: il secondo clic lo toglie, insieme al separatore che lo accompagnava
