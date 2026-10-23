@@ -5,7 +5,7 @@ import { raccogliFile, fmtDimensione } from '../../lib/file.js';
 import { scorriNumero, comparsa } from '../../js/vivo.js';
 import { SEGNAPOSTO_FILE, SEGNAPOSTO_PDF, OPZIONI_BASE, MODI_ABBINAMENTO, abbina, abbinamentoMigliore, modelloSuggerito, calcolaNomi, ordina, trovaCf, trovaTesto } from './regole.js';
 import { leggiTesto } from './pdftesto.js';
-import { fileDiEsempio, EXCEL_ESEMPIO, MODELLO_ESEMPIO } from './esempio.js';
+import { fileDiEsempio, EXCEL_ESEMPIO, MODELLO_ESEMPIO, OPZIONI_ESEMPIO } from './esempio.js';
 
 const ICONA_GIU = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>';
 const ICONA_CARICA = '<svg class="drop-icona" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>';
@@ -15,7 +15,9 @@ const PDF_BASE = { attivo: false, cosa: 'cf', etichetta: '', parole: 1, regex: '
 
 /** Regole pronte, mostrate anche nella sezione «Regole di nome». */
 export const REGOLE_PRONTE = [
-  { nome: 'Cognome_Nome_CF da Excel', descrizione: "Collega un Excel con cognome, nome e codice fiscale: ogni PDF prende i dati della sua riga.", modello: '{COGNOME}_{NOME}_{CODICE FISCALE}', opz: { maiuscole: 'su' } },
+  { nome: 'Elaborati anonimi → nome del candidato', descrizione: "Per i file ID_Elaborato_xxxx.pdf: collega l'elenco candidati esportato dalla piattaforma (Test Code) e ogni elaborato prende cognome, nome e codice fiscale.", modello: '{Last Name}_{First Name}_{CF}', opz: { maiuscole: 'su' } },
+  { nome: "Solo l'ID elaborato", descrizione: 'Da ID_Elaborato_chj56eich.pdf a chj56eich.pdf.', modello: '{file}', opz: { cerca: 'ID_Elaborato_' } },
+  { nome: 'Cognome_Nome_CF da Excel', descrizione: "Collega un Excel con colonne COGNOME, NOME e CODICE FISCALE: ogni PDF prende i dati della sua riga.", modello: '{COGNOME}_{NOME}_{CODICE FISCALE}', opz: { maiuscole: 'su' } },
   { nome: 'Codice fiscale letto dal PDF', descrizione: 'Cerca il codice fiscale dentro ogni PDF e lo usa come nome.', modello: '{pdf:cf}', opz: { maiuscole: 'su' }, pdf: { attivo: true, cosa: 'cf' } },
   { nome: 'Progressivo con prefisso', descrizione: 'ELABORATO_001, ELABORATO_002… nell\'ordine dei file.', modello: 'ELABORATO_{n}', opz: { cifre: 3 } },
   { nome: 'Nome attuale ripulito', descrizione: 'Stesso nome, ma senza spazi, accenti e caratteri strani, in maiuscolo.', modello: '{file}', opz: { maiuscole: 'su' } },
@@ -24,7 +26,7 @@ export const REGOLE_PRONTE = [
 
 const S = {
   origine: 'esempio', file: [], ignorati: 0,
-  modello: MODELLO_ESEMPIO, opz: { ...OPZIONI_BASE },
+  modello: MODELLO_ESEMPIO, opz: { ...OPZIONI_BASE, ...OPZIONI_ESEMPIO },
   excel: null,           // { nome, intestazioni, righe, fogli?, foglio?, modo, col, esempio }
   pdf: { ...PDF_BASE },
   testi: new Map(), lettura: null, giro: 0,
@@ -37,7 +39,8 @@ async function preparaEsempio() {
   if (!esempioPronto) esempioPronto = (async () => {
     const { accettati } = await raccogliFile(fileDiEsempio().map(x => new File([x.blob], x.nome, { type: 'application/pdf' })));
     S.file = ordina(accettati);
-    S.excel = { ...EXCEL_ESEMPIO, esempio: true, modo: 'nome-contiene', col: 0 };
+    const best = abbinamentoMigliore(S.file, EXCEL_ESEMPIO.righe, EXCEL_ESEMPIO.intestazioni, S.testi);
+    S.excel = { ...EXCEL_ESEMPIO, esempio: true, modo: best.modo, col: best.col };
   })();
   return esempioPronto;
 }
@@ -102,7 +105,7 @@ export async function montaRinomina(el, ctx) {
         <button class="btn primary" id="rp-zip" type="button">${ICONA_GIU}<span>Scarica ZIP rinominato</span></button>
         <button class="btn" id="rp-csv" type="button" title="Elenco vecchio nome → nuovo nome, da aprire in Excel">Elenco (CSV)</button>
       </div>
-      <div class="rp-nota-esempio" id="rp-nota-esempio"><span class="chip info"><span class="dot"></span>Dati di esempio</span><span>Quattro PDF di prova e un Excel di abbinamento con persone inventate. Carica i tuoi file per sostituirli.</span></div>
+      <div class="rp-nota-esempio" id="rp-nota-esempio"><span class="chip info"><span class="dot"></span>Dati di esempio</span><span>Quattro elaborati di prova e un elenco candidati con persone inventate. Carica i tuoi file per sostituirli.</span></div>
     </section>
     <div class="rpdf-elenco" id="rp-elenco">
       <div class="scroll"><table class="tabella">
@@ -137,7 +140,7 @@ export async function montaRinomina(el, ctx) {
     $('#rp-svuota').onclick = () => { Object.assign(S, { file: [], ignorati: 0, origine: 'file' }); S.testi.clear(); S.manuali.clear(); S.esclusi.clear(); disegnaInfo(); ricalcola(); };
     $('#rp-torna-esempio').onclick = async () => {
       esempioPronto = null; S.origine = 'esempio'; S.testi.clear(); S.manuali.clear(); S.esclusi.clear(); S.ignorati = 0;
-      S.modello = MODELLO_ESEMPIO; S.opz = { ...OPZIONI_BASE }; S.pdf = { ...PDF_BASE };
+      S.modello = MODELLO_ESEMPIO; S.opz = { ...OPZIONI_BASE, ...OPZIONI_ESEMPIO }; S.pdf = { ...PDF_BASE };
       await preparaEsempio(); S.animaRighe = true; disegnaInfo(); disegnaOpzioni(); disegnaExcel(); disegnaPdf(); ricalcola();
     };
   }
@@ -148,7 +151,7 @@ export async function montaRinomina(el, ctx) {
       if (S.origine === 'esempio') {
         // via i dati di esempio: file, Excel di prova e il modello pensato per lui
         S.file = []; if (!S.excel || S.excel.esempio) S.excel = null; S.manuali.clear(); S.esclusi.clear(); S.testi.clear();
-        if (S.modello === MODELLO_ESEMPIO) S.modello = '{file}';
+        if (S.modello === MODELLO_ESEMPIO && !S.excel) { S.modello = '{file}'; S.opz = { ...OPZIONI_BASE }; }
         S.origine = 'file'; S.ignorati = 0;
       }
       if (sostituisci) { S.file = []; S.ignorati = 0; S.manuali.clear(); S.esclusi.clear(); S.testi.clear(); }
@@ -367,13 +370,21 @@ export async function montaRinomina(el, ctx) {
     if (!S.file.length) { tb.innerHTML = '<tr><td colspan="6" class="vuoto">Nessun PDF. Trascinali nel riquadro 1, anche come cartella o .zip.</td></tr>'; $('#rp-altri').hidden = true; return; }
     const mappa = new Map(S.file.map(f => [f.id, f]));
     const mostrati = S.esito.risultati.slice(0, MAX_RIGHE);
+    const mod = S.modello.toLowerCase();
+    const usaPdf = { cf: mod.includes('{pdf:cf}'), testo: mod.includes('{pdf:testo}') || (S.excel && S.excel.modo === 'pdf-contiene') };
+    const usaExcel = !!S.excel && (S.excel.intestazioni.some(h => mod.includes('{' + h.toLowerCase() + '}')));
     tb.innerHTML = mostrati.map((r, i) => {
       const f = mappa.get(r.id);
       const ext = f.ext ? '.' + f.ext : '';
       const senzaExt = r.nuovo.endsWith(ext) ? r.nuovo.slice(0, r.nuovo.length - ext.length) : r.nuovo;
       const t = S.pdf.attivo ? S.testi.get(f.id) : null;
-      const dalPdf = t ? (t.errore && !t.testo ? `PDF: ${t.errore}` : (trovaCf(t.testo)[0] ? `CF nel PDF: ${trovaCf(t.testo)[0]}` : 'nessun CF nel PDF')) : '';
-      const dalExcel = r.riga != null && S.excel ? `riga ${r.riga + 2} dell'Excel` : '';
+      let dalPdf = '';
+      if (t) {
+        if (t.errore && !t.testo) dalPdf = `PDF: ${t.errore}`;
+        else if (usaPdf.cf) dalPdf = trovaCf(t.testo)[0] ? `CF nel PDF: ${trovaCf(t.testo)[0]}` : 'nessun codice fiscale nel PDF';
+        else if (usaPdf.testo) dalPdf = trovaTesto(t.testo, S.pdf) ? `nel PDF: «${trovaTesto(t.testo, S.pdf)}»` : 'testo non trovato nel PDF';
+      }
+      const dalExcel = r.riga != null && usaExcel ? `riga ${r.riga + 2} dell'Excel` : '';
       const note = [...r.note, dalExcel, dalPdf].filter(Boolean);
       return `<tr data-id="${r.id}" class="${r.stato === 'escluso' ? 'escluso' : ''}">
         <td class="rp-c"><input type="checkbox" data-inc="${r.id}" aria-label="Includi ${escHtml(f.nome)}"${r.stato === 'escluso' ? '' : ' checked'}></td>

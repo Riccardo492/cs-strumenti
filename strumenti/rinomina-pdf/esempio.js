@@ -19,24 +19,27 @@ export function pdfDiProva(righe) {
   return new Blob([out], { type: 'application/pdf' });
 }
 
-export const ID_ESEMPIO = ['0012', '0027', '0031', '0045'];
+// codici inventati, nello stesso formato degli ID elaborato della piattaforma
+export const ID_ESEMPIO = ['k3m9xq2pa', 'p2vh8sy6e', 'r7td4wn1c', 'x5bq1lm9t'];
 
 export function fileDiEsempio() {
   return ID_ESEMPIO.map(id => ({
-    nome: `elaborato_${id}.pdf`,
-    blob: pdfDiProva(['CONCORSO PUBBLICO - PROVA SCRITTA', `ID elaborato: ${id}`, 'Data della prova: 28/10/2026', 'Documento di esempio con dati inventati.']),
+    nome: `ID_Elaborato_${id}.pdf`,
+    blob: pdfDiProva([`ID Elaborato: ${id}`, 'Domanda #: 1', 'Risposta:', 'Elaborato di esempio con dati inventati.']),
   }));
 }
 
-/* L'elaborato 0045 non è nell'Excel e la riga 0050 non ha il suo PDF: così si vedono entrambi gli avvisi. */
+/* Come l'elenco candidati esportato dalla piattaforma (Test Code). L'elaborato x5bq1lm9t non è
+   nell'elenco e la candidata Neri non ha il suo PDF: così si vedono entrambi gli avvisi. */
 export const EXCEL_ESEMPIO = {
-  nome: 'abbinamento di esempio',
-  intestazioni: ['ID ELABORATO', 'COGNOME', 'NOME', 'CODICE FISCALE'],
+  nome: 'elenco candidati di esempio',
+  intestazioni: ['Test Code', 'First Name', 'Last Name', 'CF', 'ID', 'External ID'],
   righe: [
-    ['0012', 'ROSSI', 'MARIO', 'RSSMRA80A01H501U'],
-    ['0027', 'BIANCHI', 'LAURA', 'BNCLRA92C55B354B'],
-    ['0031', 'VERDI', 'GIOVANNI', 'VRDGNN88S07H118A'],
-    ['0050', 'NERI', 'ANNA', ''],
+    ['TC-0101', 'Mario', 'Rossi', 'RSSMRA80A01H501U', 'INPA-0001', 'k3m9xq2pa'],
+    ['TC-0102', 'Laura', 'Bianchi', 'BNCLRA92C55B354B', 'INPA-0002', 'p2vh8sy6e'],
+    ['TC-0103', 'Giovanni', 'Verdi', 'VRDGNN88S07H118A', 'INPA-0003', 'r7td4wn1c'],
+    ['TC-0104', 'Anna', 'Neri', '', 'INPA-0004', 'w8nc3hd5k'],
   ],
 };
-export const MODELLO_ESEMPIO = '{COGNOME}_{NOME}_{CODICE FISCALE}';
+export const MODELLO_ESEMPIO = '{Last Name}_{First Name}_{CF}';
+export const OPZIONI_ESEMPIO = { maiuscole: 'su' };
