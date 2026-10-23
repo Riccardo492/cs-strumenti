@@ -50,7 +50,7 @@ strumenti/
     modello-ricevuta.docx   il modello Word con i segnaposto
     modello-ricevute.xlsx   il modello Excel da compilare
   rinomina-pdf/
-    index.js · vista.js · regole.js · pdftesto.js · esempio.js · rinomina.css
+    index.js · vista.js · regole.js · pdftesto.js · modifica.js · esempio.js · rinomina.css
   abbinamento/ · controllo-domande/ · batterie-domande/
 ```
 
@@ -114,6 +114,10 @@ Si caricano i PDF (anche una cartella intera o un .zip), si scrive il **modello 
 - **dal testo del PDF**: `{pdf:cf}` (codice fiscale trovato), `{pdf:testo}` (testo dopo un'etichetta, es. «Protocollo n.», o con un'espressione regolare), `{pdf:pagine}`.
 
 Il testo dei PDF viene letto con [PDF.js](https://mozilla.github.io/pdf.js/) di Mozilla, caricato da jsDelivr solo quando si attiva la lettura. I PDF scansionati senza riconoscimento del testo non hanno testo da leggere.
+
+Si può anche **cambiare un testo dentro i PDF**: per esempio l'intestazione «ID Elaborato: chj56eich» diventa «Codice domanda: 884512» (con `{ID}` preso dall'elenco candidati), in cima a ogni pagina e, se si vuole, nel corpo. Il testo vecchio viene tolto davvero dal contenuto della pagina, non solo coperto, e quello nuovo viene scritto nella stessa posizione con un carattere standard simile (Helvetica al posto di Arial, Times al posto di Cambria). Funziona con i PDF che contengono testo normale, come quelli salvati da Word. Per questa parte si usa [pdf-lib](https://pdf-lib.js.org/), caricata da jsDelivr solo quando serve.
+
+La regola pronta «Elaborati → codice domanda» fa tutto insieme: nome del file `{ID}.pdf` e intestazione «Codice domanda: {ID}».
 
 Le regole di nome si possono salvare: restano nel browser di chi le salva.
 

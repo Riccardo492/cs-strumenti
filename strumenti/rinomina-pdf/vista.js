@@ -4,7 +4,8 @@ import { leggiFoglio, trovaIntestazione, intestazioni, scriviCsv } from '../../l
 import { raccogliFile, fmtDimensione } from '../../lib/file.js';
 import { scorriNumero, comparsa } from '../../js/vivo.js';
 import { SEGNAPOSTO_FILE, SEGNAPOSTO_PDF, OPZIONI_BASE, MODI_ABBINAMENTO, abbina, abbinamentoMigliore, modelloSuggerito, calcolaNomi, ordina, trovaCf, trovaTesto } from './regole.js';
-import { leggiTesto } from './pdftesto.js';
+import { leggiTesto, disegnaAnteprima } from './pdftesto.js';
+import { analizzaPdf, modificaPdf } from './modifica.js';
 import { fileDiEsempio, EXCEL_ESEMPIO, MODELLO_ESEMPIO, OPZIONI_ESEMPIO } from './esempio.js';
 
 const ICONA_GIU = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 2v8m0 0L5 7m3 3 3-3M3 13h10"/></svg>';
@@ -12,9 +13,11 @@ const ICONA_CARICA = '<svg class="drop-icona" viewBox="0 0 24 24" fill="none" st
 const MAX_RIGHE = 400;
 const CHIAVE_REGOLE = 'cs.rinomina.regole';
 const PDF_BASE = { attivo: false, cosa: 'cf', etichetta: '', parole: 1, regex: '', tutte: false };
+const MOD_BASE = { attivo: false, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID}', corpo: true };
 
 /** Regole pronte, mostrate anche nella sezione «Regole di nome». */
 export const REGOLE_PRONTE = [
+  { nome: 'Elaborati → codice domanda (nome e intestazione)', descrizione: "Collega l'elenco candidati: ogni ID_Elaborato_xxxx.pdf prende come nome il codice domanda (colonna ID) e dentro il PDF «ID Elaborato: …» diventa «Codice domanda: …».", modello: '{ID}', opz: {}, mod: { attivo: true, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID}', corpo: true } },
   { nome: 'Elaborati anonimi → nome del candidato', descrizione: "Per i file ID_Elaborato_xxxx.pdf: collega l'elenco candidati esportato dalla piattaforma (Test Code) e ogni elaborato prende cognome, nome e codice fiscale.", modello: '{Last Name}_{First Name}_{CF}', opz: { maiuscole: 'su' } },
   { nome: "Solo l'ID elaborato", descrizione: 'Da ID_Elaborato_chj56eich.pdf a chj56eich.pdf.', modello: '{file}', opz: { cerca: 'ID_Elaborato_' } },
   { nome: 'Cognome_Nome_CF da Excel', descrizione: "Collega un Excel con colonne COGNOME, NOME e CODICE FISCALE: ogni PDF prende i dati della sua riga.", modello: '{COGNOME}_{NOME}_{CODICE FISCALE}', opz: { maiuscole: 'su' } },
@@ -30,6 +33,7 @@ const S = {
   excel: null,           // { nome, intestazioni, righe, fogli?, foglio?, modo, col, esempio }
   pdf: { ...PDF_BASE },
   testi: new Map(), lettura: null, giro: 0,
+  mod: { ...MOD_BASE }, analisi: new Map(), analizzando: null, giroMod: 0,
   manuali: new Map(), esclusi: new Set(),
   esito: { risultati: [], sconosciuti: [] }, abbinati: null,
   prec: {}, animaRighe: true,
@@ -49,6 +53,7 @@ const salvaRegole = l => { try { localStorage.setItem(CHIAVE_REGOLE, JSON.string
 export function applicaRegola(r) {
   S.modello = r.modello; S.opz = { ...OPZIONI_BASE, ...(r.opz || {}) };
   if (r.pdf) Object.assign(S.pdf, r.pdf);
+  if (r.mod) { if (r.mod.etichetta !== S.mod.etichetta) S.analisi.clear(); Object.assign(S.mod, r.mod); } else S.mod.attivo = false;
   S.manuali.clear();
 }
 
@@ -99,6 +104,9 @@ export async function montaRinomina(el, ctx) {
       <div class="card" id="rp-excel"><h3><span class="n">3</span>Excel collegato <span class="chip ghost">facoltativo</span></h3><div id="rp-excel-corpo" class="rp-corpo"></div></div>
       <div class="card" id="rp-pdf"><h3><span class="n">4</span>Leggi dentro i PDF <span class="chip ghost">facoltativo</span></h3><div id="rp-pdf-corpo" class="rp-corpo"></div></div>
     </section>
+    <section class="rpdf-riga rpdf-uno">
+      <div class="card" id="rp-mod"><h3><span class="n">5</span>Cambia un testo dentro i PDF <span class="chip ghost">facoltativo</span></h3><div id="rp-mod-corpo" class="rp-mod-corpo"></div></div>
+    </section>
     <section class="barra" id="rp-barra" aria-label="Riepilogo">
       <div class="stats" id="rp-stats"></div>
       <div class="row">
@@ -122,8 +130,8 @@ export async function montaRinomina(el, ctx) {
   /* ---------- calcolo ---------- */
   function ricalcola() {
     if (S.excel) S.abbinati = abbina(S.file, S.excel.righe, S.excel.modo, S.excel.col, S.testi); else S.abbinati = null;
-    S.esito = calcolaNomi({ file: S.file, modello: S.modello, opz: S.opz, excel: S.excel, abbinati: S.abbinati, testi: S.testi, pdf: S.pdf, manuali: S.manuali, esclusi: S.esclusi });
-    disegnaGettoni(); disegnaProva(); disegnaStats(); disegnaTabella(); aggiornaRiepilogoExcel(); aggiornaRiepilogoPdf();
+    S.esito = calcolaNomi({ file: S.file, modello: S.modello, opz: S.opz, excel: S.excel, abbinati: S.abbinati, testi: S.testi, pdf: S.pdf, manuali: S.manuali, esclusi: S.esclusi, mod: S.mod });
+    disegnaGettoni(); disegnaProva(); disegnaStats(); disegnaTabella(); aggiornaRiepilogoExcel(); aggiornaRiepilogoPdf(); aggiornaRiepilogoMod(); anteprimaPresto();
   }
   let timer; const ricalcolaPresto = () => { clearTimeout(timer); timer = setTimeout(ricalcola, 120); };
 
@@ -137,11 +145,11 @@ export async function montaRinomina(el, ctx) {
     box.innerHTML = `<span><b>${S.file.length}</b> PDF · ${fmtDimensione(tot)}${cartelle ? ` · ${cartelle} ${cartelle === 1 ? 'cartella' : 'cartelle'}` : ''}</span>` +
       (S.ignorati ? `<span class="hint">${S.ignorati} file non PDF ignorati</span>` : '') +
       `<span class="row"><button class="linkbtn" id="rp-svuota" type="button">Togli tutti i file</button><button class="linkbtn" id="rp-torna-esempio" type="button">Torna all'esempio</button></span>`;
-    $('#rp-svuota').onclick = () => { Object.assign(S, { file: [], ignorati: 0, origine: 'file' }); S.testi.clear(); S.manuali.clear(); S.esclusi.clear(); disegnaInfo(); ricalcola(); };
+    $('#rp-svuota').onclick = () => { Object.assign(S, { file: [], ignorati: 0, origine: 'file' }); S.testi.clear(); S.analisi.clear(); S.manuali.clear(); S.esclusi.clear(); disegnaInfo(); ricalcola(); };
     $('#rp-torna-esempio').onclick = async () => {
-      esempioPronto = null; S.origine = 'esempio'; S.testi.clear(); S.manuali.clear(); S.esclusi.clear(); S.ignorati = 0;
-      S.modello = MODELLO_ESEMPIO; S.opz = { ...OPZIONI_BASE, ...OPZIONI_ESEMPIO }; S.pdf = { ...PDF_BASE };
-      await preparaEsempio(); S.animaRighe = true; disegnaInfo(); disegnaOpzioni(); disegnaExcel(); disegnaPdf(); ricalcola();
+      esempioPronto = null; S.origine = 'esempio'; S.testi.clear(); S.analisi.clear(); S.manuali.clear(); S.esclusi.clear(); S.ignorati = 0;
+      S.modello = MODELLO_ESEMPIO; S.opz = { ...OPZIONI_BASE, ...OPZIONI_ESEMPIO }; S.pdf = { ...PDF_BASE }; S.mod = { ...MOD_BASE };
+      await preparaEsempio(); S.animaRighe = true; disegnaInfo(); disegnaOpzioni(); disegnaExcel(); disegnaPdf(); disegnaMod(); ricalcola();
     };
   }
   async function aggiungi(sorgente, sostituisci = true) {
@@ -150,17 +158,18 @@ export async function montaRinomina(el, ctx) {
       if (!accettati.length) { disegnaInfo(ignorati ? `Nessun PDF trovato (${ignorati} file di altro tipo ignorati).` : 'Nessun PDF trovato.'); return; }
       if (S.origine === 'esempio') {
         // via i dati di esempio: file, Excel di prova e il modello pensato per lui
-        S.file = []; if (!S.excel || S.excel.esempio) S.excel = null; S.manuali.clear(); S.esclusi.clear(); S.testi.clear();
+        S.file = []; if (!S.excel || S.excel.esempio) S.excel = null; S.manuali.clear(); S.esclusi.clear(); S.testi.clear(); S.analisi.clear();
         if (S.modello === MODELLO_ESEMPIO && !S.excel) { S.modello = '{file}'; S.opz = { ...OPZIONI_BASE }; }
         S.origine = 'file'; S.ignorati = 0;
       }
-      if (sostituisci) { S.file = []; S.ignorati = 0; S.manuali.clear(); S.esclusi.clear(); S.testi.clear(); }
+      if (sostituisci) { S.file = []; S.ignorati = 0; S.manuali.clear(); S.esclusi.clear(); S.testi.clear(); S.analisi.clear(); }
       const visti = new Set(S.file.map(f => f.cartella + '/' + f.nome + ':' + f.dimensione));
       for (const f of accettati) if (!visti.has(f.cartella + '/' + f.nome + ':' + f.dimensione)) S.file.push(f);
       ordina(S.file); S.ignorati += ignorati; S.animaRighe = true;
       disegnaInfo(); disegnaOpzioni(); disegnaExcel(); ricalcola();
       ctx.emetti('file-caricati', { quanti: S.file.length });
       if (S.pdf.attivo) leggiPdf();
+      if (S.mod.attivo) analizzaTutti();
     } catch (e) { console.error(e); disegnaInfo('Non sono riuscito a leggere i file: ' + (e.message || e)); }
   }
 
@@ -196,7 +205,7 @@ export async function montaRinomina(el, ctx) {
       const v = e.target.value; if (!v) return;
       const r = v[0] === 'p' ? REGOLE_PRONTE[+v.slice(1)] : regoleSalvate()[+v.slice(1)];
       if (!r) return;
-      applicaRegola(r); disegnaOpzioni(); disegnaPdf(); ricalcola(); if (S.pdf.attivo) leggiPdf();
+      applicaRegola(r); disegnaOpzioni(); disegnaPdf(); disegnaMod(); ricalcola(); if (S.pdf.attivo) leggiPdf(); if (S.mod.attivo) analizzaTutti();
       ctx.avviso('Regola applicata: ' + r.nome);
     };
     $('#rp-salva-apri').onclick = () => {
@@ -206,7 +215,7 @@ export async function montaRinomina(el, ctx) {
       const ok = () => {
         const nome = inp.value.trim(); if (!nome) { inp.focus(); return; }
         const l = regoleSalvate().filter(r => r.nome !== nome);
-        l.push({ nome, modello: S.modello, opz: { ...S.opz }, pdf: S.pdf.attivo ? { attivo: true, cosa: S.pdf.cosa, etichetta: S.pdf.etichetta, parole: S.pdf.parole, regex: S.pdf.regex } : undefined });
+        l.push({ nome, modello: S.modello, opz: { ...S.opz }, pdf: S.pdf.attivo ? { attivo: true, cosa: S.pdf.cosa, etichetta: S.pdf.etichetta, parole: S.pdf.parole, regex: S.pdf.regex } : undefined, mod: S.mod.attivo ? { ...S.mod } : undefined });
         ctx.avviso(salvaRegole(l) ? 'Regola salvata in questo browser' : 'Non riesco a salvare in questo browser');
         disegnaRegole();
       };
@@ -335,14 +344,104 @@ export async function montaRinomina(el, ctx) {
     if (vivo) { ricalcola(); ctx.emetti('pdf-letti'); }
   }
 
+  /* ---------- 5 · testo dentro i PDF ---------- */
+  function disegnaMod() {
+    const m = S.mod, box = $('#rp-mod-corpo');
+    box.innerHTML = `
+      <div class="rp-mod-campi">
+        <label class="check"><input type="checkbox" id="rp-mod-attivo"${m.attivo ? ' checked' : ''}><b>Sostituisci un testo nei PDF</b><small>Per esempio l'intestazione «ID Elaborato: chj56eich» diventa «Codice domanda: 884512». Il testo vecchio viene tolto davvero, non solo coperto. I file sul tuo computer restano com'erano: le modifiche finiscono solo nello ZIP.</small></label>
+        <div class="rp-mod-opz"${m.attivo ? '' : ' hidden'}>
+          <div class="field"><label for="rp-mod-etichetta">Testo da sostituire</label><input id="rp-mod-etichetta" value="${escHtml(m.etichetta)}" placeholder="es. ID Elaborato:"><span class="hint">L'etichetta. Viene tolto anche il valore che la segue sulla stessa riga.</span></div>
+          <div class="field"><label for="rp-mod-nuovo">Nuovo testo</label><input id="rp-mod-nuovo" class="mono" spellcheck="false" value="${escHtml(m.nuovo)}" placeholder="es. Codice domanda: {ID}"><span class="hint">Si usano gli stessi segnaposto del nome, per esempio <span class="mono">{ID}</span> dall'Excel collegato.</span></div>
+          <label class="check"><input type="checkbox" id="rp-mod-corpo-cb"${m.corpo ? ' checked' : ''}><b>Anche nel testo della pagina</b><small>Oltre all'intestazione in cima a ogni pagina.</small></label>
+          <div id="rp-mod-esito" class="rp-pdf-esito"></div>
+        </div>
+      </div>
+      <div class="rp-mod-anteprima" id="rp-mod-anteprima"${m.attivo ? '' : ' hidden'}>
+        <div class="rp-ant-testa"><span class="lat-tit">Anteprima della prima pagina</span><span class="sub mono" id="rp-ant-file"></span></div>
+        <figure><figcaption>Prima</figcaption><canvas id="rp-ant-prima" aria-label="Pagina originale"></canvas></figure>
+        <figure><figcaption>Dopo</figcaption><canvas id="rp-ant-dopo" aria-label="Pagina modificata"></canvas></figure>
+        <p class="hint" id="rp-ant-msg"></p>
+      </div>`;
+    $('#rp-mod-attivo').onchange = e => { m.attivo = e.target.checked; disegnaMod(); ricalcola(); if (m.attivo) analizzaTutti(); };
+    const et = $('#rp-mod-etichetta'); if (et) et.oninput = e => { m.etichetta = e.target.value; S.analisi.clear(); clearTimeout(timerMod); timerMod = setTimeout(analizzaTutti, 400); };
+    const nu = $('#rp-mod-nuovo'); if (nu) nu.oninput = e => { m.nuovo = e.target.value; ricalcolaPresto(); };
+    const co = $('#rp-mod-corpo-cb'); if (co) co.onchange = e => { m.corpo = e.target.checked; ricalcola(); };
+    anteprimaFatta = '';
+    aggiornaRiepilogoMod();
+  }
+  let timerMod, timerAnt, anteprimaFatta = '';
+  const occorrenzeUtili = a => a && a.occorrenze ? a.occorrenze.filter(o => S.mod.corpo || o.intestazione) : [];
+  function aggiornaRiepilogoMod() {
+    const box = $('#rp-mod-esito'); if (!box || !S.mod.attivo) return;
+    if (S.analizzando) {
+      const k = S.analizzando.totale ? Math.round(S.analizzando.fatti / S.analizzando.totale * 100) : 0;
+      box.innerHTML = `<div class="rp-progresso"><span style="width:${k}%"></span></div><span class="hint">Cerco «${escHtml(S.mod.etichetta)}» nei PDF… ${S.analizzando.fatti} di ${S.analizzando.totale}</span>`;
+      return;
+    }
+    if (S.analizzando === undefined) return;
+    let trovati = 0, punti = 0, mancano = [], errori = 0;
+    for (const f of S.file) {
+      if (S.esclusi.has(f.id)) continue;
+      const a = S.analisi.get(f.id); if (!a) continue;
+      if (a.errore) { errori++; continue; }
+      const n = occorrenzeUtili(a).length;
+      if (n) { trovati++; punti += n; } else mancano.push(f.nome);
+    }
+    box.innerHTML = `<span class="row">${S.analisi.size ? `<span class="chip ${trovati ? 'ok' : 'warn'}"><span class="dot"></span>Trovato in ${trovati} PDF · ${punti} ${punti === 1 ? 'punto' : 'punti'}</span>` : ''}${mancano.length ? `<span class="chip warn">non trovato in ${mancano.length}</span>` : ''}${errori ? `<span class="chip err">${errori} non leggibili</span>` : ''}</span>` +
+      (mancano.length ? `<span class="hint">Non trovato in: ${mancano.slice(0, 5).map(escHtml).join(', ')}${mancano.length > 5 ? '…' : ''}</span>` : '');
+  }
+  async function analizzaTutti() {
+    if (!S.mod.attivo) return;
+    const giro = ++S.giroMod;
+    const da = S.file.filter(f => !S.analisi.has(f.id));
+    if (!da.length) { ricalcola(); return; }
+    S.analizzando = { fatti: 0, totale: da.length }; aggiornaRiepilogoMod();
+    try {
+      for (const f of da) {
+        if (giro !== S.giroMod || !S.mod.attivo) return;
+        try { S.analisi.set(f.id, await analizzaPdf(f.blob, S.mod.etichetta)); }
+        catch (e) { if (/connessione/.test(e.message)) throw e; S.analisi.set(f.id, { occorrenze: [], errore: e.message || 'non leggibile' }); }
+        S.analizzando.fatti++;
+        if (vivo) aggiornaRiepilogoMod();
+      }
+    } catch (e) {
+      const box = $('#rp-mod-esito'); if (box && vivo) box.innerHTML = `<p class="msg err">${escHtml(e.message)}</p>`;
+      S.analizzando = undefined; return;
+    } finally { if (giro === S.giroMod && S.analizzando) S.analizzando = null; }
+    if (vivo) { ricalcola(); ctx.emetti('testo-pdf-cercato'); }
+  }
+  function anteprimaPresto() { clearTimeout(timerAnt); timerAnt = setTimeout(anteprima, 500); }
+  async function anteprima() {
+    const fig = $('#rp-mod-anteprima'); if (!fig || !S.mod.attivo || !vivo) return;
+    const r = S.esito.risultati.find(x => x.stato !== 'escluso' && x.testoPdf && occorrenzeUtili(S.analisi.get(x.id)).length);
+    const msg = $('#rp-ant-msg');
+    if (!r) { $('#rp-ant-file').textContent = ''; msg.textContent = S.analizzando ? 'Preparo l\'anteprima…' : 'L\'anteprima compare quando il testo da sostituire viene trovato in almeno un PDF e il nuovo testo è completo.'; return; }
+    const f = S.file.find(x => x.id === r.id);
+    const chiave = [f.id, S.mod.etichetta, r.testoPdf, S.mod.corpo].join('|');
+    if (chiave === anteprimaFatta) return;
+    anteprimaFatta = chiave;
+    $('#rp-ant-file').textContent = f.nome; msg.textContent = '';
+    try {
+      await disegnaAnteprima(f.blob, $('#rp-ant-prima'));
+      const x = await modificaPdf(f.blob, { etichetta: S.mod.etichetta, nuovo: r.testoPdf, corpo: S.mod.corpo });
+      if (x.bytes && vivo && chiave === anteprimaFatta) { await disegnaAnteprima(x.bytes, $('#rp-ant-dopo')); comparsa([$('#rp-ant-dopo')], { distanza: 6 }); }
+    } catch (e) { console.error(e); if (vivo) { msg.textContent = 'Anteprima non disponibile: ' + (e.message || e); anteprimaFatta = ''; } }
+  }
+
   /* ---------- riepilogo e tabella ---------- */
+  const problemaMod = r => {
+    if (!S.mod.attivo || r.stato === 'escluso') return false;
+    const a = S.analisi.get(r.id);
+    return !r.testoPdf || (a && (a.errore || !occorrenzeUtili(a).length));
+  };
   function conteggi() {
     const c = { file: S.file.length, rinominati: 0, uguali: 0, controllare: 0, esclusi: 0 };
     for (const r of S.esito.risultati) {
       if (r.stato === 'escluso') c.esclusi++;
       else if (r.stato === 'uguale' || r.stato === 'vuoto') c.uguali++;
       else c.rinominati++;
-      if (r.stato === 'doppione' || r.stato === 'vuoto' || (r.note.length && r.stato !== 'escluso')) c.controllare++;
+      if (r.stato === 'doppione' || r.stato === 'vuoto' || (r.note.length && r.stato !== 'escluso') || problemaMod(r)) c.controllare++;
     }
     return c;
   }
@@ -385,7 +484,14 @@ export async function montaRinomina(el, ctx) {
         else if (usaPdf.testo) dalPdf = trovaTesto(t.testo, S.pdf) ? `nel PDF: «${trovaTesto(t.testo, S.pdf)}»` : 'testo non trovato nel PDF';
       }
       const dalExcel = r.riga != null && usaExcel ? `riga ${r.riga + 2} dell'Excel` : '';
-      const note = [...r.note, dalExcel, dalPdf].filter(Boolean);
+      let nelPdf = '';
+      if (S.mod.attivo && r.stato !== 'escluso') {
+        const a = S.analisi.get(f.id), n = occorrenzeUtili(a).length;
+        if (a && a.errore) nelPdf = `PDF: ${a.errore}`;
+        else if (a && !n) nelPdf = `«${S.mod.etichetta}» non trovato nel PDF`;
+        else if (a && r.testoPdf) nelPdf = `nel PDF: «${r.testoPdf}» (${n} ${n === 1 ? 'punto' : 'punti'})`;
+      }
+      const note = [...r.note, dalExcel, dalPdf, nelPdf].filter(Boolean);
       return `<tr data-id="${r.id}" class="${r.stato === 'escluso' ? 'escluso' : ''}">
         <td class="rp-c"><input type="checkbox" data-inc="${r.id}" aria-label="Includi ${escHtml(f.nome)}"${r.stato === 'escluso' ? '' : ' checked'}></td>
         <td class="num sub">${i + 1}</td>
@@ -411,18 +517,28 @@ export async function montaRinomina(el, ctx) {
     avanza('Preparo…');
     const mappa = new Map(S.file.map(f => [f.id, f]));
     const zip = new JSZip();
-    for (const r of S.esito.risultati) {
-      if (r.stato === 'escluso') continue;
+    const inclusi = S.esito.risultati.filter(r => r.stato !== 'escluso');
+    let cambiati = 0, invariati = 0, k = 0;
+    for (const r of inclusi) {
       const f = mappa.get(r.id);
-      zip.file((S.opz.cartelle && f.cartella ? f.cartella + '/' : '') + r.nuovo, f.blob, { binary: true });
+      let dati = f.blob;
+      if (S.mod.attivo && r.testoPdf) {
+        avanza(`Modifico i PDF… ${++k} di ${inclusi.length}`);
+        try { const x = await modificaPdf(f.blob, { etichetta: S.mod.etichetta, nuovo: r.testoPdf, corpo: S.mod.corpo }); if (x.bytes) { dati = x.bytes; cambiati++; } else invariati++; }
+        catch (e) { if (/connessione/.test(e.message)) throw e; invariati++; }
+      } else if (S.mod.attivo) invariati++;
+      zip.file((S.opz.cartelle && f.cartella ? f.cartella + '/' : '') + r.nuovo, dati, { binary: true });
     }
-    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE', mimeType: 'application/zip' }, m => avanza(`Preparo… ${Math.round(m.percent)}%`));
-    if (await ctx.salva(`PDF rinominati - ${oggiIt()}.zip`, blob)) ctx.emetti('scaricato');
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE', mimeType: 'application/zip' }, m => avanza(`Preparo lo ZIP… ${Math.round(m.percent)}%`));
+    if (await ctx.salva(`PDF rinominati - ${oggiIt()}.zip`, blob)) {
+      ctx.emetti('scaricato');
+      if (S.mod.attivo) setTimeout(() => ctx.avviso(`Testo cambiato in ${cambiati} PDF` + (invariati ? `; ${invariati} lasciati com'erano` : '')), 1600);
+    }
   }));
   $('#rp-csv').addEventListener('click', e => esegui(e.currentTarget, async () => {
     const mappa = new Map(S.file.map(f => [f.id, f]));
-    const righe = [['CARTELLA', 'NOME ATTUALE', 'NUOVO NOME', 'STATO', 'NOTE', 'RIGA EXCEL']];
-    for (const r of S.esito.risultati) { const f = mappa.get(r.id); righe.push([f.cartella, f.nome, r.stato === 'escluso' ? '' : r.nuovo, r.stato, r.note.join(' · '), r.riga != null ? r.riga + 2 : '']); }
+    const righe = [['CARTELLA', 'NOME ATTUALE', 'NUOVO NOME', 'STATO', 'NOTE', 'RIGA EXCEL', 'TESTO NEL PDF']];
+    for (const r of S.esito.risultati) { const f = mappa.get(r.id); righe.push([f.cartella, f.nome, r.stato === 'escluso' ? '' : r.nuovo, r.stato, r.note.join(' · '), r.riga != null ? r.riga + 2 : '', S.mod.attivo && r.stato !== 'escluso' ? (r.testoPdf || '') : '']); }
     await ctx.salva(`Elenco rinomina - ${oggiIt()}.csv`, new Blob([scriviCsv(righe)], { type: 'text/csv' }));
   }));
 
@@ -462,11 +578,12 @@ export async function montaRinomina(el, ctx) {
   tb.addEventListener('click', e => { const b = e.target.closest('[data-ripristina]'); if (b) { S.manuali.delete(b.dataset.ripristina); ricalcola(); } });
   $('#rp-tutti').addEventListener('change', e => { if (e.target.checked) S.esclusi.clear(); else S.file.forEach(f => S.esclusi.add(f.id)); ricalcola(); });
 
-  disegnaInfo(); disegnaOpzioni(); disegnaExcel(); disegnaPdf();
+  disegnaInfo(); disegnaOpzioni(); disegnaExcel(); disegnaPdf(); disegnaMod();
   S.animaRighe = true; S.prec = {};
   ricalcola();
   if (S.pdf.attivo && S.file.some(f => !S.testi.has(f.id))) leggiPdf();
-  return () => { vivo = false; clearTimeout(timer); };
+  if (S.mod.attivo && S.file.some(f => !S.analisi.has(f.id))) analizzaTutti();
+  return () => { vivo = false; clearTimeout(timer); clearTimeout(timerMod); clearTimeout(timerAnt); };
 }
 
 /* ====================== Regole di nome ====================== */

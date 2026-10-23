@@ -44,3 +44,19 @@ export async function leggiTesto(blob, { tutte = false } = {}) {
     return { testo, pagine: doc.numPages, errore: testo ? undefined : 'nessun testo (forse è una scansione)' };
   } finally { compito.destroy(); }
 }
+
+/** Disegna in un canvas la parte alta della prima pagina (per l'anteprima prima/dopo). */
+export async function disegnaAnteprima(dati, canvas, { quota = 0.24, larghezza = 560 } = {}) {
+  const lib = await lettore();
+  const compito = lib.getDocument({ data: dati instanceof Uint8Array ? dati.slice() : new Uint8Array(await dati.arrayBuffer()), isEvalSupported: false, useSystemFonts: true, verbosity: 0 });
+  try {
+    const doc = await compito.promise;
+    const pg = await doc.getPage(1);
+    const base = pg.getViewport({ scale: 1 });
+    const vp = pg.getViewport({ scale: larghezza * Math.min(2, window.devicePixelRatio || 1) / base.width });
+    canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height * quota);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await pg.render({ canvasContext: ctx, viewport: vp }).promise;
+  } finally { compito.destroy(); }
+}

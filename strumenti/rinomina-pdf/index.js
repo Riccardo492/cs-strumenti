@@ -24,6 +24,8 @@ export default {
         testo: "<p>Se i nomi stanno in un elenco, collega l'Excel. Scegli la colonna che identifica il file (per esempio l'ID elaborato) e come si abbina: le altre colonne diventano segnaposto, come <span class=\"mono\">{COGNOME}</span>.</p><p>Sotto vedi quanti file sono stati abbinati e quali righe non hanno un PDF.</p>" },
       { titolo: 'Oppure leggi dentro i PDF', punta: '#rp-pdf',
         testo: "<p>Se il codice fiscale o un numero è scritto nel documento, attiva la lettura: diventa disponibile <span class=\"mono\">{pdf:cf}</span> o <span class=\"mono\">{pdf:testo}</span>. Per gli elaborati, l'etichetta da cercare è «ID Elaborato».</p><p>Funziona solo con i PDF che contengono testo, non con le scansioni.</p>" },
+      { titolo: 'Cambia un testo dentro i PDF', punta: '#rp-mod',
+        testo: "<p>Se nel documento va scritto qualcosa di nuovo, per esempio il codice domanda al posto di «ID Elaborato: …», attiva questa parte: scrivi il testo da sostituire e quello nuovo, con i segnaposto come <span class=\"mono\">{ID}</span>.</p><p>L'anteprima mostra la prima pagina prima e dopo.</p>" },
       { titolo: "Controlla l'elenco", punta: '#rp-elenco',
         testo: "<ul><li><b>Doppione</b>: due file avrebbero lo stesso nome, al secondo viene aggiunto _2.</li><li><b>Nome vuoto</b>: mancano i dati, il file tiene il nome attuale.</li><li>Puoi correggere a mano un nome scrivendo nella sua casella, ed escludere un file togliendo la spunta.</li></ul>" },
       { titolo: 'Scarica lo ZIP', punta: '#rp-barra', avanzaQuando: 'scaricato',

@@ -134,7 +134,7 @@ export function trovaTesto(testo, { cosa, etichetta, parole, regex }) {
 /**
  * @returns {{ risultati: { id, nuovo, stato: 'ok'|'uguale'|'doppione'|'vuoto'|'escluso'|'manuale', note: string[], riga: number|null }[], sconosciuti: string[] }}
  */
-export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, manuali, esclusi }) {
+export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, manuali, esclusi, mod }) {
   const intestN = excel ? excel.intestazioni.map(h => norm(h)) : [];
   const totali = file.length;
   const cifre = opz.cifre || String((+opz.inizio || 1) + totali - 1).length;
@@ -148,28 +148,32 @@ export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, m
     const ab = abbinati ? abbinati.get(f.id) : null;
     const riga = ab ? excel.righe[ab.riga] : null;
     const t = testi.get(f.id);
-    let base;
-    if (manuali.has(f.id)) base = manuali.get(f.id);
-    else {
-      base = modello.replace(/\{([^{}]+)\}/g, (m, tok) => {
-        const k = norm(tok);
-        if (k === 'file') return f.base;
-        if (k === 'n') return String(n).padStart(cifre, '0');
-        if (k === 'cartella') return f.cartella.split('/').pop() || '';
-        if (k === 'oggi') return oggi();
-        if (k === 'pdf cf') return t ? (trovaCf(t.testo)[0] || '') : '';
-        if (k === 'pdf testo') return t ? trovaTesto(t.testo, pdf) : '';
-        if (k === 'pdf pagine') return t && t.pagine ? String(t.pagine) : '';
-        const c = intestN.indexOf(k);
-        if (c >= 0) {
-          if (!riga) return '';
-          const v = riga[c];
-          if (typeof v === 'number' && /data/.test(k)) return parseDate(v).replace(/\//g, '-');
-          return clean(typeof v === 'number' && !Number.isInteger(v) ? String(v).replace('.', ',') : v);
-        }
-        sconosciuti.add(tok);
-        return '';
-      });
+    // valore di un segnaposto per questo file
+    const valore = tok => {
+      const k = norm(tok);
+      if (k === 'file') return f.base;
+      if (k === 'n') return String(n).padStart(cifre, '0');
+      if (k === 'cartella') return f.cartella.split('/').pop() || '';
+      if (k === 'oggi') return oggi();
+      if (k === 'pdf cf') return t ? (trovaCf(t.testo)[0] || '') : '';
+      if (k === 'pdf testo') return t ? trovaTesto(t.testo, pdf) : '';
+      if (k === 'pdf pagine') return t && t.pagine ? String(t.pagine) : '';
+      const c = intestN.indexOf(k);
+      if (c >= 0) {
+        if (!riga) return '';
+        const v = riga[c];
+        if (typeof v === 'number' && /data/.test(k)) return parseDate(v).replace(/\//g, '-');
+        return clean(typeof v === 'number' && !Number.isInteger(v) ? String(v).replace('.', ',') : v);
+      }
+      sconosciuti.add(tok);
+      return '';
+    };
+    const base = manuali.has(f.id) ? manuali.get(f.id) : modello.replace(/\{([^{}]+)\}/g, (m, tok) => valore(tok));
+    // testo da scrivere dentro il PDF (se la modifica è attiva): stessi segnaposto, nessuna pulizia
+    let testoPdf = null, testoPdfIncompleto = false;
+    if (mod && mod.attivo && mod.nuovo) {
+      testoPdf = mod.nuovo.replace(/\{([^{}]+)\}/g, (m, tok) => { const v = valore(tok); if (!v) testoPdfIncompleto = true; return v; }).replace(/\s+/g, ' ').trim();
+      if (testoPdfIncompleto) note.push('Manca un valore per il nuovo testo nel PDF: il PDF resta com\'è');
     }
     let nuovo = pulisci(base, opz);
     let stato = manuali.has(f.id) ? 'manuale' : 'ok';
@@ -188,7 +192,7 @@ export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, m
     }
     usati.set((dove + '/' + pieno).toLowerCase(), true);
     if (stato === 'ok' && pieno === f.nome) stato = 'uguale';
-    return { id: f.id, nuovo: pieno, stato, note, riga: ab ? ab.riga : null };
+    return { id: f.id, nuovo: pieno, stato, note, riga: ab ? ab.riga : null, testoPdf: testoPdfIncompleto ? null : testoPdf };
   });
   return { risultati, sconosciuti: [...sconosciuti] };
 }
