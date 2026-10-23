@@ -110,14 +110,14 @@ Più avanti si può collegare un assistente AI che risponde a domande libere: va
 Si caricano i PDF (anche una cartella intera o un .zip), si scrive il **modello del nome** e si scarica uno ZIP con i file rinominati: gli originali non vengono toccati. Il nome si compone con:
 
 - **dal file**: `{file}` (nome attuale), `{n}` (progressivo), `{cartella}`, `{oggi}`;
-- **da un Excel collegato**: ogni colonna diventa un segnaposto, per esempio `{COGNOME}`. Il file si abbina alla riga per nome uguale, per nome che contiene il valore (es. `elaborato_0012.pdf` ↔ `0012`), per testo contenuto nel PDF (es. il codice fiscale) oppure in ordine;
+- **da un Excel collegato**: ogni colonna diventa un segnaposto, per esempio `{COGNOME}` o `{ID}`; in più `{nominativo}` dà cognome e nome insieme (colonne Cognome/Nome, Last Name/First Name o Nominativo). Il file si abbina alla riga per nome uguale, per nome che contiene il valore (es. `elaborato_0012.pdf` ↔ `0012`), per testo contenuto nel PDF (es. il codice fiscale) oppure in ordine;
 - **dal testo del PDF**: `{pdf:cf}` (codice fiscale trovato), `{pdf:testo}` (testo dopo un'etichetta, es. «Protocollo n.», o con un'espressione regolare), `{pdf:pagine}`.
 
 Il testo dei PDF viene letto con [PDF.js](https://mozilla.github.io/pdf.js/) di Mozilla, caricato da jsDelivr solo quando si attiva la lettura. I PDF scansionati senza riconoscimento del testo non hanno testo da leggere.
 
-Si può anche **cambiare un testo dentro i PDF**: per esempio l'intestazione «ID Elaborato: chj56eich» diventa «Codice domanda: 884512» (con `{ID}` preso dall'elenco candidati), in cima a ogni pagina e, se si vuole, nel corpo. Il testo vecchio viene tolto davvero dal contenuto della pagina, non solo coperto, e quello nuovo viene scritto nella stessa posizione con un carattere standard simile (Helvetica al posto di Arial, Times al posto di Cambria). Funziona con i PDF che contengono testo normale, come quelli salvati da Word. Per questa parte si usa [pdf-lib](https://pdf-lib.js.org/), caricata da jsDelivr solo quando serve.
+Si può anche **cambiare un testo dentro i PDF**: per esempio l'intestazione «ID Elaborato: chj56eich» diventa «Codice domanda: 884512 – ROSSI MARIO» (con `{ID}` e `{nominativo}` presi dall'elenco candidati), in cima a ogni pagina e, se si vuole, nel corpo. Il testo vecchio viene tolto davvero dal contenuto della pagina, non solo coperto, e quello nuovo viene scritto nella stessa posizione con un carattere standard simile (Helvetica al posto di Arial, Times al posto di Cambria). Funziona con i PDF che contengono testo normale, come quelli salvati da Word. Per questa parte si usa [pdf-lib](https://pdf-lib.js.org/), caricata da jsDelivr solo quando serve.
 
-La regola pronta «Elaborati → codice domanda» fa tutto insieme: nome del file `{ID}.pdf` e intestazione «Codice domanda: {ID}».
+La regola pronta «Elaborati → codice domanda e nominativo» fa tutto insieme: nome del file `{ID}_{nominativo}.pdf` (es. `884512_ROSSI_MARIO.pdf`) e intestazione «Codice domanda: {ID} – {nominativo}». Se il testo nuovo è più lungo, la riga viene ricentrata e, solo se serve, il carattere si rimpicciolisce.
 
 Le regole di nome si possono salvare: restano nel browser di chi le salva.
 

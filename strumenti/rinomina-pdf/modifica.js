@@ -225,13 +225,32 @@ export async function modificaPdf(blob, { etichetta, nuovo, corpo = true }) {
       const f = await font(fontSimile(nomeFont(L, pg, o.font)));
       const testo = scrivibile(nuovo, f);
       const m = /^(.*?:)\s*(\S.*)$/.exec(testo);
+      // Se il testo nuovo è più lungo della riga: prima il valore si avvicina all'etichetta e la riga
+      // si sposta verso sinistra (o si ricentra, per le intestazioni); solo se non basta il carattere si rimpicciolisce.
+      const W = pg.getWidth(), sinistra = Math.min(o.x, 54), destra = W - 40;
       if (m && o.xValore != null) {
-        pg.drawText(m[1], { x: o.x, y: o.y, size: o.size, font: f, color: nero });
         const fv = o.fontValore ? await font(fontSimile(nomeFont(L, pg, o.fontValore))) : f;
-        const sv = o.sizeValore || o.size;
-        const xv = Math.max(o.xValore, o.x + f.widthOfTextAtSize(m[1] + ' ', o.size));
-        pg.drawText(scrivibile(m[2], fv), { x: xv, y: o.y, size: sv, font: fv, color: nero });
-      } else pg.drawText(testo, { x: o.x, y: o.y, size: o.size, font: f, color: nero });
+        const et = m[1], val = scrivibile(m[2], fv);
+        let sz = o.size, szv = o.sizeValore || o.size;
+        const largh = (s1, s2) => ({ et: f.widthOfTextAtSize(et, s1), sp: f.widthOfTextAtSize(o.intestazione ? '  ' : ' ', s1), val: fv.widthOfTextAtSize(val, s2) });
+        let w = largh(sz, szv);
+        let x = o.x, xv = Math.max(o.xValore, o.x + w.et + w.sp);
+        if (xv + w.val > destra) {
+          const tot = w.et + w.sp + w.val;
+          if (tot <= destra - sinistra) {
+            x = o.intestazione ? Math.max(sinistra, (W - tot) / 2) : Math.max(sinistra, Math.min(o.x, destra - tot));
+          } else {
+            const k = (destra - sinistra) / tot; sz *= k; szv *= k; w = largh(sz, szv); x = sinistra;
+          }
+          xv = x + w.et + w.sp;
+        }
+        pg.drawText(et, { x, y: o.y, size: sz, font: f, color: nero });
+        pg.drawText(val, { x: xv, y: o.y, size: szv, font: fv, color: nero });
+      } else {
+        let sz = o.size, x = o.x, w = f.widthOfTextAtSize(testo, sz);
+        if (x + w > destra) { if (w <= destra - sinistra) x = Math.max(sinistra, destra - w); else { sz *= (destra - sinistra) / w; x = sinistra; } }
+        pg.drawText(testo, { x, y: o.y, size: sz, font: f, color: nero });
+      }
       sostituite++;
     }
   }

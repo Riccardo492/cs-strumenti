@@ -3,7 +3,8 @@ import { escHtml, oggiIt, isEmpty } from '../../lib/formati.js';
 import { leggiFoglio, trovaIntestazione, intestazioni, scriviCsv } from '../../lib/excel.js';
 import { raccogliFile, fmtDimensione } from '../../lib/file.js';
 import { scorriNumero, comparsa } from '../../js/vivo.js';
-import { SEGNAPOSTO_FILE, SEGNAPOSTO_PDF, OPZIONI_BASE, MODI_ABBINAMENTO, abbina, abbinamentoMigliore, modelloSuggerito, calcolaNomi, ordina, trovaCf, trovaTesto } from './regole.js';
+import { SEGNAPOSTO_FILE, SEGNAPOSTO_PDF, OPZIONI_BASE, MODI_ABBINAMENTO, abbina, abbinamentoMigliore, modelloSuggerito, calcolaNomi, ordina, trovaCf, trovaTesto, colonneNominativo, usaExcel } from './regole.js';
+import { norm } from '../../lib/formati.js';
 import { leggiTesto, disegnaAnteprima } from './pdftesto.js';
 import { analizzaPdf, modificaPdf } from './modifica.js';
 import { fileDiEsempio, EXCEL_ESEMPIO, MODELLO_ESEMPIO, OPZIONI_ESEMPIO } from './esempio.js';
@@ -13,11 +14,12 @@ const ICONA_CARICA = '<svg class="drop-icona" viewBox="0 0 24 24" fill="none" st
 const MAX_RIGHE = 400;
 const CHIAVE_REGOLE = 'cs.rinomina.regole';
 const PDF_BASE = { attivo: false, cosa: 'cf', etichetta: '', parole: 1, regex: '', tutte: false };
-const MOD_BASE = { attivo: false, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID}', corpo: true };
+const MOD_BASE = { attivo: false, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID} – {nominativo}', corpo: true, maiuscole: 'su' };
 
 /** Regole pronte, mostrate anche nella sezione «Regole di nome». */
 export const REGOLE_PRONTE = [
-  { nome: 'Elaborati → codice domanda (nome e intestazione)', descrizione: "Collega l'elenco candidati: ogni ID_Elaborato_xxxx.pdf prende come nome il codice domanda (colonna ID) e dentro il PDF «ID Elaborato: …» diventa «Codice domanda: …».", modello: '{ID}', opz: {}, mod: { attivo: true, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID}', corpo: true } },
+  { nome: 'Elaborati → codice domanda e nominativo', descrizione: "Collega l'elenco candidati: ogni ID_Elaborato_xxxx.pdf diventa CODICE_COGNOME_NOME.pdf e dentro il PDF «ID Elaborato: …» diventa «Codice domanda: … – COGNOME NOME».", modello: '{ID}_{nominativo}', opz: { maiuscole: 'su' }, mod: { attivo: true, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID} – {nominativo}', corpo: true, maiuscole: 'su' } },
+  { nome: 'Elaborati → solo codice domanda', descrizione: "Come sopra, ma senza il nominativo: il file diventa CODICE.pdf e dentro il PDF compare «Codice domanda: …».", modello: '{ID}', opz: {}, mod: { attivo: true, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID}', corpo: true, maiuscole: 'su' } },
   { nome: 'Elaborati anonimi → nome del candidato', descrizione: "Per i file ID_Elaborato_xxxx.pdf: collega l'elenco candidati esportato dalla piattaforma (Test Code) e ogni elaborato prende cognome, nome e codice fiscale.", modello: '{Last Name}_{First Name}_{CF}', opz: { maiuscole: 'su' } },
   { nome: "Solo l'ID elaborato", descrizione: 'Da ID_Elaborato_chj56eich.pdf a chj56eich.pdf.', modello: '{file}', opz: { cerca: 'ID_Elaborato_' } },
   { nome: 'Cognome_Nome_CF da Excel', descrizione: "Collega un Excel con colonne COGNOME, NOME e CODICE FISCALE: ogni PDF prende i dati della sua riga.", modello: '{COGNOME}_{NOME}_{CODICE FISCALE}', opz: { maiuscole: 'su' } },
@@ -185,6 +187,7 @@ export async function montaRinomina(el, ctx) {
   function disegnaGettoni() {
     const gruppo = (titolo, lista) => lista.length ? `<div class="rp-gruppo"><span class="rp-gruppo-t">${titolo}</span>${lista.map(g => `<button type="button" class="rp-gettone${S.modello.toLowerCase().includes('{' + g.t.toLowerCase() + '}') ? ' usato' : ''}" data-t="${escHtml(g.t)}" title="${escHtml(g.d)}">{${escHtml(g.t)}}</button>`).join('')}</div>` : '';
     const dallExcel = S.excel ? S.excel.intestazioni.filter(Boolean).map(h => ({ t: h, d: 'colonna dell\'Excel collegato' })) : [];
+    if (S.excel && colonneNominativo(S.excel.intestazioni.map(norm)).ok && !S.excel.intestazioni.some(h => norm(h) === 'nominativo')) dallExcel.unshift({ t: 'nominativo', d: 'cognome e nome dall\'Excel' });
     $('#rp-gettoni').innerHTML = gruppo('Dal file', SEGNAPOSTO_FILE) + gruppo("Dall'Excel", dallExcel) + gruppo('Dal PDF', S.pdf.attivo ? SEGNAPOSTO_PDF : []) +
       (S.esito.sconosciuti.length ? `<p class="msg err">Segnaposto non riconosciuto: ${S.esito.sconosciuti.map(t => '{' + escHtml(t) + '}').join(', ')}. Controlla il nome o collega l'Excel giusto.</p>` : '');
   }
@@ -352,7 +355,8 @@ export async function montaRinomina(el, ctx) {
         <label class="check"><input type="checkbox" id="rp-mod-attivo"${m.attivo ? ' checked' : ''}><b>Sostituisci un testo nei PDF</b><small>Per esempio l'intestazione «ID Elaborato: chj56eich» diventa «Codice domanda: 884512». Il testo vecchio viene tolto davvero, non solo coperto. I file sul tuo computer restano com'erano: le modifiche finiscono solo nello ZIP.</small></label>
         <div class="rp-mod-opz"${m.attivo ? '' : ' hidden'}>
           <div class="field"><label for="rp-mod-etichetta">Testo da sostituire</label><input id="rp-mod-etichetta" value="${escHtml(m.etichetta)}" placeholder="es. ID Elaborato:"><span class="hint">L'etichetta. Viene tolto anche il valore che la segue sulla stessa riga.</span></div>
-          <div class="field"><label for="rp-mod-nuovo">Nuovo testo</label><input id="rp-mod-nuovo" class="mono" spellcheck="false" value="${escHtml(m.nuovo)}" placeholder="es. Codice domanda: {ID}"><span class="hint">Si usano gli stessi segnaposto del nome, per esempio <span class="mono">{ID}</span> dall'Excel collegato.</span></div>
+          <div class="field"><label for="rp-mod-nuovo">Nuovo testo</label><input id="rp-mod-nuovo" class="mono" spellcheck="false" value="${escHtml(m.nuovo)}" placeholder="es. Codice domanda: {ID}"><span class="hint">Si usano gli stessi segnaposto del nome: per esempio <span class="mono">{ID}</span> e <span class="mono">{nominativo}</span> (cognome e nome) dall'Excel collegato.</span></div>
+          <div class="field"><label for="rp-mod-maiuscole">Valori presi dall'Excel</label><select id="rp-mod-maiuscole"><option value="su"${m.maiuscole === 'su' ? ' selected' : ''}>in MAIUSCOLO (ROSSI MARIO)</option><option value="come"${m.maiuscole !== 'su' ? ' selected' : ''}>come sono nell'Excel</option></select></div>
           <label class="check"><input type="checkbox" id="rp-mod-corpo-cb"${m.corpo ? ' checked' : ''}><b>Anche nel testo della pagina</b><small>Oltre all'intestazione in cima a ogni pagina.</small></label>
           <div id="rp-mod-esito" class="rp-pdf-esito"></div>
         </div>
@@ -367,6 +371,7 @@ export async function montaRinomina(el, ctx) {
     const et = $('#rp-mod-etichetta'); if (et) et.oninput = e => { m.etichetta = e.target.value; S.analisi.clear(); clearTimeout(timerMod); timerMod = setTimeout(analizzaTutti, 400); };
     const nu = $('#rp-mod-nuovo'); if (nu) nu.oninput = e => { m.nuovo = e.target.value; ricalcolaPresto(); };
     const co = $('#rp-mod-corpo-cb'); if (co) co.onchange = e => { m.corpo = e.target.checked; ricalcola(); };
+    const mu = $('#rp-mod-maiuscole'); if (mu) mu.onchange = e => { m.maiuscole = e.target.value; ricalcola(); };
     anteprimaFatta = '';
     aggiornaRiepilogoMod();
   }
@@ -471,7 +476,7 @@ export async function montaRinomina(el, ctx) {
     const mostrati = S.esito.risultati.slice(0, MAX_RIGHE);
     const mod = S.modello.toLowerCase();
     const usaPdf = { cf: mod.includes('{pdf:cf}'), testo: mod.includes('{pdf:testo}') || (S.excel && S.excel.modo === 'pdf-contiene') };
-    const usaExcel = !!S.excel && (S.excel.intestazioni.some(h => mod.includes('{' + h.toLowerCase() + '}')));
+    const conExcel = usaExcel(S.modello, S.excel);
     tb.innerHTML = mostrati.map((r, i) => {
       const f = mappa.get(r.id);
       const ext = f.ext ? '.' + f.ext : '';
@@ -483,7 +488,7 @@ export async function montaRinomina(el, ctx) {
         else if (usaPdf.cf) dalPdf = trovaCf(t.testo)[0] ? `CF nel PDF: ${trovaCf(t.testo)[0]}` : 'nessun codice fiscale nel PDF';
         else if (usaPdf.testo) dalPdf = trovaTesto(t.testo, S.pdf) ? `nel PDF: «${trovaTesto(t.testo, S.pdf)}»` : 'testo non trovato nel PDF';
       }
-      const dalExcel = r.riga != null && usaExcel ? `riga ${r.riga + 2} dell'Excel` : '';
+      const dalExcel = r.riga != null && (conExcel || (S.mod.attivo && usaExcel(S.mod.nuovo, S.excel))) ? `riga ${r.riga + 2} dell'Excel` : '';
       let nelPdf = '';
       if (S.mod.attivo && r.stato !== 'escluso') {
         const a = S.analisi.get(f.id), n = occorrenzeUtili(a).length;
@@ -601,7 +606,8 @@ export function montaRegole(el, ctx) {
         <p class="hint">Nel modello del nome scrivi il testo fisso e, tra parentesi graffe, le parti che cambiano da file a file.</p>
         <div class="scroll"><table class="tabella"><thead><tr><th>Segnaposto</th><th>Diventa</th></tr></thead><tbody>
           ${SEGNAPOSTO_FILE.map(s => `<tr><td class="mono"><b>{${s.t}}</b></td><td>${escHtml(s.d)}</td></tr>`).join('')}
-          <tr><td class="mono"><b>{COGNOME}</b>, <b>{ID ELABORATO}</b>…</td><td>il valore di quella colonna nella riga dell'Excel collegato</td></tr>
+          <tr><td class="mono"><b>{COGNOME}</b>, <b>{ID}</b>…</td><td>il valore di quella colonna nella riga dell'Excel collegato</td></tr>
+          <tr><td class="mono"><b>{nominativo}</b></td><td>cognome e nome dall'Excel collegato (colonne Cognome/Nome, Last Name/First Name, oppure Nominativo)</td></tr>
           ${SEGNAPOSTO_PDF.map(s => `<tr><td class="mono"><b>{${s.t}}</b></td><td>${escHtml(s.d)} (con «Leggi dentro i PDF» attivo)</td></tr>`).join('')}
         </tbody></table></div>
         <p class="hint">Esempio: <span class="mono">ELABORATO_{n}_{COGNOME}</span> → <span class="mono">ELABORATO_007_ROSSI.pdf</span>. Spazi, accenti e caratteri non ammessi nei nomi di file vengono sistemati da soli; se due file finirebbero con lo stesso nome, al secondo viene aggiunto _2.</p>

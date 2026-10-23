@@ -136,6 +136,7 @@ export function trovaTesto(testo, { cosa, etichetta, parole, regex }) {
  */
 export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, manuali, esclusi, mod }) {
   const intestN = excel ? excel.intestazioni.map(h => norm(h)) : [];
+  const nom = colonneNominativo(intestN);
   const totali = file.length;
   const cifre = opz.cifre || String((+opz.inizio || 1) + totali - 1).length;
   const usati = new Map();
@@ -158,6 +159,10 @@ export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, m
       if (k === 'pdf cf') return t ? (trovaCf(t.testo)[0] || '') : '';
       if (k === 'pdf testo') return t ? trovaTesto(t.testo, pdf) : '';
       if (k === 'pdf pagine') return t && t.pagine ? String(t.pagine) : '';
+      if (k === 'nominativo' && intestN.indexOf(k) < 0) {
+        if (!riga) return '';
+        return clean(nom.unica >= 0 ? riga[nom.unica] : [riga[nom.cognome], riga[nom.nome]].filter(v => !isEmptyStr(v)).join(' '));
+      }
       const c = intestN.indexOf(k);
       if (c >= 0) {
         if (!riga) return '';
@@ -172,12 +177,12 @@ export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, m
     // testo da scrivere dentro il PDF (se la modifica è attiva): stessi segnaposto, nessuna pulizia
     let testoPdf = null, testoPdfIncompleto = false;
     if (mod && mod.attivo && mod.nuovo) {
-      testoPdf = mod.nuovo.replace(/\{([^{}]+)\}/g, (m, tok) => { const v = valore(tok); if (!v) testoPdfIncompleto = true; return v; }).replace(/\s+/g, ' ').trim();
+      testoPdf = mod.nuovo.replace(/\{([^{}]+)\}/g, (m, tok) => { let v = valore(tok); if (!v) testoPdfIncompleto = true; if (mod.maiuscole === 'su') v = v.toLocaleUpperCase('it-IT'); return v; }).replace(/\s+/g, ' ').trim();
       if (testoPdfIncompleto) note.push('Manca un valore per il nuovo testo nel PDF: il PDF resta com\'è');
     }
     let nuovo = pulisci(base, opz);
     let stato = manuali.has(f.id) ? 'manuale' : 'ok';
-    if (excel && !manuali.has(f.id) && /\{[^{}]+\}/.test(modello) && excel.intestazioni.some(h => modello.toLowerCase().includes('{' + h.toLowerCase() + '}'))) {
+    if (excel && !manuali.has(f.id) && usaExcel(modello, excel)) {
       if (!ab) note.push("Non trovato nell'Excel");
       else if (ab.ambiguo) note.push("Più righe dell'Excel corrispondono: uso la prima");
     }
@@ -195,6 +200,21 @@ export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, m
     return { id: f.id, nuovo: pieno, stato, note, riga: ab ? ab.riga : null, testoPdf: testoPdfIncompleto ? null : testoPdf };
   });
   return { risultati, sconosciuti: [...sconosciuti] };
+}
+
+const isEmptyStr = v => v == null || String(v).trim() === '';
+/** Colonne con cognome e nome (o un'unica colonna «nominativo») nell'Excel collegato. */
+export function colonneNominativo(intestN) {
+  const trova = nomi => intestN.findIndex(h => nomi.includes(h));
+  const unica = trova(['nominativo', 'cognome e nome', 'cognome nome', 'candidato', 'nome completo']);
+  const cognome = trova(['cognome', 'last name', 'surname']), nome = trova(['nome', 'first name', 'name']);
+  return { unica, cognome, nome, ok: unica >= 0 || (cognome >= 0 && nome >= 0) };
+}
+/** Il modello usa dati dell'Excel? (colonne o {nominativo}) */
+export function usaExcel(modello, excel) {
+  if (!excel) return false;
+  const m = modello.toLowerCase();
+  return m.includes('{nominativo}') || excel.intestazioni.some(h => h && m.includes('{' + h.toLowerCase() + '}'));
 }
 
 /** Ordine naturale: file_2 prima di file_10. */
