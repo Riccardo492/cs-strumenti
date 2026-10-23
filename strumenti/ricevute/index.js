@@ -6,7 +6,7 @@ import { montaGenera, montaModello, montaCalcoli } from './vista.js';
 export default {
   id: 'ricevute',
   nome: 'Ricevute di pagamento',
-  descrizione: "Dall'Excel dei collaboratori alle ricevute Word per prestazione occasionale, con la ritenuta del 20% già calcolata.",
+  descrizione: "Dall'Excel dei collaboratori alle ricevute Word, con la ritenuta del 20% già calcolata.",
   tinta: 214,
   stato: 'pronto',
   icona: icona('<path d="M6 3h12v18l-2.4-1.6L13.2 21l-2.4-1.6L8.4 21 6 19.4z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/>'),

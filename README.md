@@ -22,6 +22,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 
 ```
 index.html                  la pagina
+assets/                     logo C&S (usato come maschera: prende il colore del tema) e icona della scheda
 css/
   tokens.css                colori, caratteri, misure (tema chiaro e scuro)
   base.css                  bottoni, campi, schede, etichette, tabelle

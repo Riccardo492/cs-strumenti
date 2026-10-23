@@ -22,9 +22,10 @@ a { color: var(--accent); }
 /* testata */
 .testata { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding-block: 14px; min-height: 64px; }
 .marchio { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: .01em; }
-.marchio-segno { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent); position: relative; flex: none; }
-.marchio-segno::after { content: ""; position: absolute; inset: 6px; border-radius: 50%; background: var(--accent); animation: battito-punto 2.6s ease-in-out infinite; }
-.marchio-segno::before { content: ""; position: absolute; inset: -5px; border-radius: 50%; background: radial-gradient(circle at 50% 2px, var(--accent) 2.2px, transparent 3px); animation: gira 7s linear infinite; }
+/* il logo è usato come maschera: prende il colore --marchio, blu nel tema chiaro e chiaro nel tema scuro */
+.logo-cs { display: inline-block; background: var(--marchio); -webkit-mask: url("../assets/logo-cs-segno.png") center / contain no-repeat; mask: url("../assets/logo-cs-segno.png") center / contain no-repeat; }
+.marchio-segno { width: 32px; height: 32px; flex: none; transition: rotate .5s cubic-bezier(.25,1.4,.5,1), scale .3s; }
+.marchio:hover .marchio-segno { rotate: -12deg; scale: 1.08; }
 .briciole { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13.5px; color: var(--muted); min-width: 0; }
 .briciole a { color: var(--muted); text-decoration: none; }
 .briciole a:hover { color: var(--accent); text-decoration: underline; }

@@ -14,6 +14,7 @@ const ATTESA_GIRO = 8000, PASSO_GIRO = 3400;
 let anello = null, vista = null, elenco = [], cerchi = [];
 let azzeraInclinazione = () => {};
 
+const LOGO = '<span class="logo-cs" role="img" aria-label="C&amp;S Consulenza e Selezione"></span>';
 const saluto = () => { const h = new Date().getHours(); return h >= 5 && h < 13 ? 'Buongiorno' : h >= 13 && h < 18 ? 'Buon pomeriggio' : 'Buonasera'; };
 
 /**
@@ -41,6 +42,7 @@ export function disegnaMenu(el, strumenti, { scegli, evidenziata = () => {} }) {
           x2="${f(50 + (RAGGIO - NODO) * Math.cos(p.a))}" y2="${f(50 + (RAGGIO - NODO) * Math.sin(p.a))}"/>`).join('')}
       </svg>
       <div class="mozzo" id="mozzo">
+        <span class="mozzo-icona" id="mozzo-icona">${LOGO}</span>
         <span class="mozzo-sopra" id="mozzo-saluto">${saluto()}</span>
         <strong class="mozzo-titolo" id="mozzo-titolo">Scegli una funzione</strong>
         <span class="mozzo-testo" id="mozzo-testo">${testoBase}</span>
@@ -55,7 +57,14 @@ export function disegnaMenu(el, strumenti, { scegli, evidenziata = () => {} }) {
     <p class="menu-nota">${n} funzioni, ${pronte} ${pronte === 1 ? 'pronta' : 'pronte'}. Scegline una: si apre il suo sottomenu e, quando serve, l'assistente ti guida passo passo.</p>`;
 
   anello = el.querySelector('#anello');
-  const titolo = el.querySelector('#mozzo-titolo'), testo = el.querySelector('#mozzo-testo');
+  const titolo = el.querySelector('#mozzo-titolo'), testo = el.querySelector('#mozzo-testo'), icona = el.querySelector('#mozzo-icona');
+  // al centro il logo; quando una funzione è in primo piano diventa la sua icona
+  const mostraIcona = s => {
+    icona.classList.toggle('di-funzione', !!s);
+    if (s) icona.style.setProperty('--h', s.tinta); else icona.style.removeProperty('--h');
+    icona.innerHTML = s ? s.icona : LOGO;
+    if (!riduciMovimento()) icona.animate([{ opacity: 0, transform: 'scale(.55) rotate(-30deg)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.25,1.4,.5,1)' });
+  };
   const nodi = [...el.querySelectorAll('.nodo')];
   cerchi = nodi.map(b => b.querySelector('.nodo-cerchio'));
   setInterval(() => { el.querySelector('#mozzo-saluto').textContent = saluto(); }, 60000);
@@ -72,6 +81,7 @@ export function disegnaMenu(el, strumenti, { scegli, evidenziata = () => {} }) {
     const s = strumenti.find(x => x.id === id);
     if (s) { anello.dataset.attivo = id; anello.style.setProperty('--ha', s.tinta); cambia(titolo, s.nome); cambia(testo, s.descrizione); }
     else { delete anello.dataset.attivo; cambia(titolo, 'Scegli una funzione'); cambia(testo, testoBase); }
+    mostraIcona(s);
     anello.querySelectorAll('.raggio').forEach(r => r.classList.toggle('on', r.dataset.id === id));
     nodi.forEach(b => b.classList.toggle('in-luce', b.dataset.id === id));
     evidenziata(id);
