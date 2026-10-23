@@ -1,0 +1,53 @@
+/* Token di progetto: colori, caratteri, misure.
+   Layout: menu circolare al centro; aperta una funzione, il suo cerchio va in alto a sinistra
+   e il sottomenu scende a cascata nella colonna laterale; il contenuto occupa il resto. */
+:root {
+  --bg: #eef1f5;
+  --surface: #ffffff;
+  --ink: #17202b;
+  --muted: #586474;
+  --line: #d6dce4;
+  --accent: #1f4fa3;
+  --accent-ink: #ffffff;
+  --accent-soft: #e2e9f6;
+  --ok: #1d7549;
+  --ok-soft: #e1f2e8;
+  --warn: #8f5b00;
+  --warn-soft: #fbefd8;
+  --err: #b3261e;
+  --err-soft: #fbe5e3;
+  --desk: #dfe4eb;
+  --paper: #ffffff;
+  --paper-ink: #111111;
+  --shadow: 0 1px 2px rgba(23, 32, 43, .06), 0 6px 20px rgba(23, 32, 43, .07);
+
+  /* tinta di ogni funzione: hue in --h, saturazione e luminosità qui */
+  --tinta-s: 58%;
+  --tinta-fondo-l: 94%;
+  --tinta-bordo-l: 80%;
+  --tinta-ink-l: 34%;
+
+  --font-ui: "Titillium Web", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-doc: "Arial Nova", Arial, "Liberation Sans", Helvetica, sans-serif;
+  --r: 6px;
+  --laterale: 272px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151b; --surface: #1a2029; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2d3642;
+    --accent: #84a8ee; --accent-ink: #0c1526; --accent-soft: #1f2c45;
+    --ok: #63c393; --ok-soft: #16301f; --warn: #e6b45c; --warn-soft: #382a10; --err: #f08b81; --err-soft: #3b1a17;
+    --desk: #0c1015; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    --tinta-s: 42%; --tinta-fondo-l: 19%; --tinta-bordo-l: 34%; --tinta-ink-l: 78%;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151b; --surface: #1a2029; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2d3642;
+  --accent: #84a8ee; --accent-ink: #0c1526; --accent-soft: #1f2c45;
+  --ok: #63c393; --ok-soft: #16301f; --warn: #e6b45c; --warn-soft: #382a10; --err: #f08b81; --err-soft: #3b1a17;
+  --desk: #0c1015; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+  --tinta-s: 42%; --tinta-fondo-l: 19%; --tinta-bordo-l: 34%; --tinta-ink-l: 78%;
+  color-scheme: dark;
+}

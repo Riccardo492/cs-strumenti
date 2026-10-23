@@ -1,0 +1,81 @@
+/* Menu circolare, colonna laterale con sottomenu a cascata, area contenuto. */
+
+/* ---------- menu circolare ---------- */
+.vista-menu { display: grid; justify-items: center; gap: 14px; padding-block: 8px 24px; }
+.anello { position: relative; width: min(640px, 100%, calc(100vh - 150px)); min-width: 300px; max-width: 100%; aspect-ratio: 1; container-type: inline-size; margin-bottom: 28px; }
+.orbita { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.orbita-cerchio { fill: none; stroke: var(--line); stroke-width: .35; stroke-dasharray: 1.2 1.6; }
+.raggio { stroke: var(--line); stroke-width: .35; transition: stroke .2s, stroke-width .2s; }
+.anello[data-attivo] .raggio.on { stroke: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); stroke-width: .7; }
+
+.mozzo { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 40cqw; aspect-ratio: 1; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
+  display: grid; place-content: center; justify-items: center; text-align: center; gap: .6cqw; padding: 5cqw; }
+.mozzo-sopra { font-size: clamp(10px, 1.9cqw, 12.5px); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.mozzo-titolo { font-size: clamp(15px, 3.6cqw, 23px); line-height: 1.1; font-weight: 700; text-wrap: balance; }
+.mozzo-testo { font-size: clamp(11.5px, 2.15cqw, 14px); line-height: 1.35; color: var(--muted); text-wrap: balance; }
+
+.nodo { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); translate: -50% -9cqw; width: 27cqw;
+  display: grid; justify-items: center; gap: 1.2cqw; padding: 0; border: 0; background: none; cursor: pointer; color: var(--ink); text-align: center; }
+.nodo-cerchio, .ancora, .volante {
+  width: 18cqw; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l));
+  border: 1.5px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); box-shadow: var(--shadow);
+  transition: transform .2s cubic-bezier(.2, .7, .2, 1), border-color .2s; }
+.nodo-cerchio svg, .ancora svg, .volante svg { width: 44%; height: 44%; }
+.nodo[data-stato="in costruzione"] .nodo-cerchio { border-style: dashed; }
+.nodo:hover .nodo-cerchio, .nodo:focus-visible .nodo-cerchio { transform: scale(1.07); border-color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); }
+.nodo:focus-visible { outline: none; }
+.nodo:focus-visible .nodo-cerchio { outline: 2px solid var(--accent); outline-offset: 3px; }
+.nodo-nome { font-weight: 700; font-size: clamp(12px, 2.45cqw, 15.5px); line-height: 1.15; text-wrap: balance; }
+.nodo-stato { font-size: clamp(10px, 1.85cqw, 12px); font-weight: 600; color: var(--muted); margin-top: -.6cqw; }
+@container (max-width: 440px) { .nodo-stato { display: none; } .nodo-nome { font-size: 12.5px; } }
+.menu-nota { margin: 0; color: var(--muted); font-size: 13.5px; text-align: center; max-width: 60ch; text-wrap: balance; }
+
+/* ---------- vista funzione ---------- */
+.vista-strumento { display: grid; grid-template-columns: var(--laterale) minmax(0, 1fr); gap: 24px; align-items: start; padding-top: 6px; }
+.laterale { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 18px; min-width: 0; }
+.ancora-blocco { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.ancora { width: 64px; cursor: pointer; padding: 0; }
+.ancora:hover { transform: scale(1.06); }
+.ancora-blocco[data-stato="in costruzione"] .ancora { border-style: dashed; }
+.lat-nome { margin: 0 0 2px; font-size: 19px; line-height: 1.15; font-weight: 700; text-wrap: balance; }
+.lat-tit { margin: 0 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* la cascata parte dal centro del cerchio */
+.sottomenu ol { list-style: none; margin: 0 0 0 31px; padding: 4px 0 4px 0; border-left: 2px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); display: grid; gap: 2px; }
+.sottomenu li { position: relative; padding-left: 18px; }
+.sottomenu li::before { content: ""; position: absolute; left: -7px; top: 15px; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--bg); border: 2px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); }
+.sottomenu li:has(a[aria-current])::before { background: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); border-color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); }
+.sottomenu a { display: grid; gap: 1px; padding: 7px 10px; border-radius: var(--r); color: var(--ink); text-decoration: none; }
+.sottomenu a:hover { background: var(--surface); }
+.sottomenu a[aria-current] { background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); }
+.voce-nome { font-weight: 600; }
+.sottomenu a[aria-current] .voce-nome { font-weight: 700; }
+.voce-desc { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+
+.siti ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.siti a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); text-decoration: none; }
+.siti a:hover { border-color: var(--accent); }
+.siti a b { font-weight: 600; font-size: 14px; }
+.siti a small { grid-column: 1; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.siti a .freccia { grid-row: 1 / span 2; grid-column: 2; align-self: center; color: var(--muted); }
+.lat-azioni { display: grid; gap: 10px; justify-items: start; }
+
+.contenuto { container: contenuto / inline-size; min-width: 0; display: grid; gap: 16px; align-content: start; }
+.sez-testa { display: grid; gap: 4px; }
+.sez-testa h2 { margin: 0; font-size: 26px; line-height: 1.1; font-weight: 700; text-wrap: balance; }
+.sez-testa p { margin: 0; color: var(--muted); max-width: 72ch; }
+
+.volante { position: fixed; z-index: 30; transform-origin: 0 0; pointer-events: none; margin: 0; }
+
+@media (max-width: 860px) {
+  .vista-strumento { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .laterale { position: static; gap: 12px; }
+  .voce-desc { display: none; }
+  .sottomenu ol { margin-left: 31px; }
+  .siti a small { display: none; }
+  .lat-azioni { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .sez-testa h2 { font-size: 22px; }
+}

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CS Strumenti</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Strumenti per la gestione dei concorsi: ricevute, abbinamenti, controlli e altro.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Titillium+Web:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/menu.css">
+<link rel="stylesheet" href="css/assistente.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div class="pagina">
+  <header class="testata">
+    <a class="marchio" href="#" aria-label="CS Strumenti, torna al menu">
+      <span class="marchio-segno" aria-hidden="true"></span>
+      <span class="marchio-nome">CS Strumenti</span>
+    </a>
+    <nav class="briciole" id="briciole" aria-label="Percorso"></nav>
+  </header>
+
+  <main id="app">
+    <section id="vista-menu" class="vista-menu" aria-label="Menu delle funzioni"></section>
+
+    <section id="vista-strumento" class="vista-strumento" hidden>
+      <aside class="laterale" id="laterale" aria-label="Sottomenu"></aside>
+      <div class="contenuto" id="contenuto"></div>
+    </section>
+  </main>
+</div>
+
+<aside id="assistente" class="assistente" aria-label="Assistente" hidden>
+  <div class="ass-testa">
+    <span class="ass-segno" aria-hidden="true"></span>
+    <div class="ass-intest"><strong>Assistente</strong><span id="ass-contesto"></span></div>
+    <button class="ass-chiudi" id="ass-chiudi" type="button" aria-label="Chiudi l'assistente">&times;</button>
+  </div>
+  <ol class="ass-puntini" id="ass-puntini" aria-hidden="true"></ol>
+  <p class="ass-contatore" id="ass-contatore"></p>
+  <h3 class="ass-titolo" id="ass-titolo"></h3>
+  <div class="ass-testo" id="ass-testo"></div>
+  <p class="ass-attesa" id="ass-attesa" hidden><span class="ass-pulsa" aria-hidden="true"></span>Vado avanti da solo quando hai fatto.</p>
+  <div class="ass-azioni">
+    <button class="btn" id="ass-indietro" type="button">Indietro</button>
+    <button class="btn primary" id="ass-avanti" type="button">Avanti</button>
+  </div>
+</aside>
+
+<div class="avviso" id="avviso" role="status" aria-live="polite" hidden></div>
+<noscript><p class="noscript">Per usare CS Strumenti serve JavaScript attivo nel browser.</p></noscript>
+</body>
+</html>
