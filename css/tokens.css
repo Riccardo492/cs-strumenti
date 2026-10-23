@@ -20,6 +20,7 @@
   --paper: #ffffff;
   --paper-ink: #111111;
   --shadow: 0 1px 2px rgba(23, 32, 43, .06), 0 6px 20px rgba(23, 32, 43, .07);
+  --luce: rgba(31, 79, 163, .075);        /* alone che segue il puntatore sulle schede */
 
   /* tinta di ogni funzione: hue in --h, saturazione e luminosità qui */
   --tinta-s: 58%;
@@ -40,6 +41,7 @@
     --ok: #63c393; --ok-soft: #16301f; --warn: #e6b45c; --warn-soft: #382a10; --err: #f08b81; --err-soft: #3b1a17;
     --desk: #0c1015; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
     --tinta-s: 42%; --tinta-fondo-l: 19%; --tinta-bordo-l: 34%; --tinta-ink-l: 78%;
+    --luce: rgba(132, 168, 238, .09);
     color-scheme: dark;
   }
 }
@@ -49,5 +51,6 @@
   --ok: #63c393; --ok-soft: #16301f; --warn: #e6b45c; --warn-soft: #382a10; --err: #f08b81; --err-soft: #3b1a17;
   --desk: #0c1015; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
   --tinta-s: 42%; --tinta-fondo-l: 19%; --tinta-bordo-l: 34%; --tinta-ink-l: 78%;
+  --luce: rgba(132, 168, 238, .09);
   color-scheme: dark;
 }

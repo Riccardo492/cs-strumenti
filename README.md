@@ -4,6 +4,8 @@ Raccolta di strumenti per la gestione dei concorsi, in un'unica pagina web.
 
 Il menu è circolare: al centro c'è il cerchio principale, intorno le funzioni. Quando ne scegli una, il suo cerchio si sposta in alto a sinistra e sotto si apre a cascata il sottomenu. Ogni sezione può avere un **assistente passo passo** («Guidami passo passo») e dei **siti collegati**.
 
+L'interfaccia è animata: sullo sfondo vagano particelle che reagiscono al puntatore, dal cerchio centrale partono impulsi verso le funzioni e, se nessuno tocca il menu per qualche secondo, il centro presenta da solo le funzioni una alla volta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
+
 Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati a nessun server.
 
 ## Funzioni
@@ -30,6 +32,8 @@ js/
   menu.js                   disegno del menu e animazioni
   assistente.js             guida passo passo
   eventi.js                 eventi tra le funzioni e l'assistente
+  vivo.js                   campo animato di sfondo, onde sui bottoni, luce sulle schede, numeri che scorrono
+  movimento.js              rispetta l'impostazione di sistema «riduci movimento»
 lib/                        utilità condivise da tutte le funzioni
   excel.js                  lettura di .xlsx e .csv, riconoscimento colonne
   formati.js                importi, date, testi

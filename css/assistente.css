@@ -7,14 +7,15 @@
 .ass-segno { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); position: relative; }
 .ass-segno::before, .ass-segno::after { content: ""; position: absolute; border-radius: 50%; background: var(--accent); }
 .ass-segno::before { inset: 9px; }
-.ass-segno::after { width: 6px; height: 6px; right: 2px; top: 2px; }
+.ass-segno::before { animation: battito-punto 2.4s ease-in-out infinite; }
+.ass-segno::after { inset: 0; background: radial-gradient(circle at 50% 3px, var(--accent) 3px, transparent 3.6px); animation: gira 3.2s linear infinite; }
 .ass-intest { display: grid; line-height: 1.2; min-width: 0; }
 .ass-intest strong { font-size: 14px; }
 .ass-intest span { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ass-chiudi { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); cursor: pointer; font-size: 18px; line-height: 1; color: var(--muted); }
 .ass-chiudi:hover { color: var(--ink); border-color: var(--accent); }
 .ass-puntini { list-style: none; margin: 2px 0 0; padding: 0; display: flex; gap: 5px; }
-.ass-puntini li { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.ass-puntini li { flex: 1; height: 4px; border-radius: 2px; background: var(--line); transition: background .4s, opacity .4s; }
 .ass-puntini li.fatto { background: var(--accent); }
 .ass-puntini li.ora { background: var(--accent); opacity: .55; }
 .ass-contatore { margin: 0; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -22,6 +23,10 @@
 .ass-testo { font-size: 14px; color: var(--ink); }
 .ass-testo p { margin: 0 0 6px; }
 .ass-testo ul { margin: 0 0 6px; padding-left: 18px; }
+.ass-scrive { display: inline-flex; gap: 4px; padding: 6px 0; }
+.ass-scrive i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: scrive 1s ease-in-out infinite; }
+.ass-scrive i:nth-child(2) { animation-delay: .15s; } .ass-scrive i:nth-child(3) { animation-delay: .3s; }
+@keyframes scrive { 0%, 60%, 100% { translate: 0 0; opacity: .4; } 30% { translate: 0 -4px; opacity: 1; } }
 .ass-attesa { margin: 0; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--accent); font-weight: 600; }
 .ass-pulsa { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
 @media (prefers-reduced-motion: no-preference) { .ass-pulsa { animation: ass-pulsa 1.2s ease-in-out infinite; } @keyframes ass-pulsa { 50% { opacity: .25; } } }

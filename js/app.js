@@ -1,7 +1,8 @@
 // Avvio della pagina: menu, navigazione tra funzioni e sezioni, assistente.
 // Indirizzi: "#"  → menu;  "#ricevute" → prima sezione;  "#ricevute.modello" → sezione precisa.
 import STRUMENTI from '../strumenti/elenco.js';
-import { disegnaMenu, chiudiMenu, riapriMenu, vola, cascata, rettangoloNodo, riduciMovimento } from './menu.js';
+import { disegnaMenu, chiudiMenu, riapriMenu, vola, cascata, rettangoloNodo, geometriaMenu, riduciMovimento } from './menu.js';
+import { creaCampo, attivaMicroInterazioni, comparsa } from './vivo.js';
 import { creaAssistente } from './assistente.js';
 import { emetti } from './eventi.js';
 import { salvaFile, avviso } from '../lib/salva.js';
@@ -16,8 +17,17 @@ let attuale = { s: null, sezione: null, smonta: null };
 let origineVolo = null;
 let primoGiro = true;   // all'apertura diretta di un indirizzo niente animazioni
 
+const campo = creaCampo($('#campo'), { tinte: STRUMENTI.map(s => s.tinta) });
+campo.geometria(geometriaMenu);
+attivaMicroInterazioni();
+
 disegnaMenu(vistaMenu, STRUMENTI, {
-  scegli(id, rect) { origineVolo = rect; location.hash = id; },
+  scegli(id, rect) {
+    const s = STRUMENTI.find(x => x.id === id);
+    campo.scintille(rect.left + rect.width / 2, rect.top + rect.height / 2, s.tinta);
+    origineVolo = rect; location.hash = id;
+  },
+  evidenziata: id => campo.evidenzia(id),
 });
 
 const ICONA_GUIDA = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1v.4M8 11.3h.01"/></svg>';
@@ -37,7 +47,14 @@ async function naviga() {
   if (!s) return mostraMenu();
   const sezione = s.sezioni.some(x => x.id === sez) ? sez : s.sezioni[0].id;
   if (attuale.s === s) {
-    if (attuale.sezione !== sezione) { aggiornaSottomenu(sezione); await montaSezione(s, sezione); }
+    if (attuale.sezione !== sezione) {
+      aggiornaSottomenu(sezione);
+      await montaSezione(s, sezione);
+      if (!riduciMovimento()) {
+        contenuto.querySelector('.sez-testa')?.animate([{ opacity: 0, transform: 'translateX(18px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
+        comparsa(contenuto.querySelectorAll('.sez-corpo > * > *'), { passo: 55, max: 8, ritardo: 60 });
+      }
+    }
     return;
   }
   await apriStrumento(s, sezione);
@@ -50,6 +67,7 @@ async function apriStrumento(s, sezione) {
   if (dalMenu && da) await chiudiMenu(s.id);
   smontaAttuale();
   attuale = { s, sezione: null, smonta: null };
+  campo.modalita('strumento');
   disegnaLaterale(s, sezione);
   vistaMenu.hidden = true; vistaStr.hidden = false;
   window.scrollTo(0, 0);
@@ -58,9 +76,12 @@ async function apriStrumento(s, sezione) {
   if (da && !riduciMovimento()) {
     cascata(voci, 260, laterale.querySelector('.sottomenu ol'));
     contenuto.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 320, delay: 240, easing: 'ease-out', fill: 'backwards' });
+    contenutoPronto.then(() => comparsa(contenuto.querySelectorAll('.sez-corpo > * > *'), { passo: 60, max: 8, ritardo: 300 }));
     await vola(da, $('#ancora'), s);
+    $('#ancora')?.animate([{ scale: 1 }, { scale: 1.12 }, { scale: 1 }], { duration: 420, easing: 'ease-out' });
   }
   await contenutoPronto;
+  muoviPerla(true);
 }
 
 async function mostraMenu() {
@@ -72,6 +93,7 @@ async function mostraMenu() {
   attuale = { s: null, sezione: null, smonta: null };
   assistente.chiudi();
   vistaStr.hidden = true; vistaMenu.hidden = false;
+  campo.modalita('menu');
   briciole.innerHTML = '';
   document.title = 'CS Strumenti';
   riapriMenu({ anima: !!veniva, tranne: veniva?.id });
@@ -96,7 +118,7 @@ function disegnaLaterale(s, sezione) {
     </div>
     <nav class="sottomenu" aria-label="Sezioni di ${escHtml(s.nome)}"><ol>
       ${s.sezioni.map(x => `<li><a href="#${s.id}.${x.id}" data-sez="${x.id}"><span class="voce-nome">${escHtml(x.nome)}</span>${x.breve ? `<span class="voce-desc">${escHtml(x.breve)}</span>` : ''}</a></li>`).join('')}
-    </ol></nav>
+    </ol><span class="perla" aria-hidden="true"></span></nav>
     ${s.siti && s.siti.length ? `<div class="siti"><h2 class="lat-tit">Siti collegati</h2><ul>
       ${s.siti.map(l => `<li><a href="${escHtml(l.url)}" target="_blank" rel="noopener"><b>${escHtml(l.nome)}</b><span class="freccia" aria-hidden="true">↗</span>${l.descrizione ? `<small>${escHtml(l.descrizione)}</small>` : ''}</a></li>`).join('')}
     </ul></div>` : ''}
@@ -106,13 +128,30 @@ function disegnaLaterale(s, sezione) {
     </div>`;
   $('#ancora').addEventListener('click', () => { location.hash = ''; });
   $('#btn-guida').addEventListener('click', () => avviaGuida());
+  const nav = laterale.querySelector('.sottomenu');
+  nav.addEventListener('pointerover', e => { const li = e.target.closest('li'); if (li) muoviPerla(false, li); });
+  nav.addEventListener('focusin', e => { const li = e.target.closest('li'); if (li) muoviPerla(false, li); });
+  nav.addEventListener('pointerleave', () => muoviPerla());
+  nav.addEventListener('focusout', () => muoviPerla());
   aggiornaSottomenu(sezione);
+}
+
+/** La «perla» scorre lungo la linea della cascata fino alla voce sotto il puntatore, o a quella attiva. */
+function muoviPerla(subito = false, li = null) {
+  const perla = laterale.querySelector('.perla');
+  li = li || laterale.querySelector('.sottomenu a[aria-current]')?.closest('li');
+  if (!perla || !li) return;
+  if (subito) perla.style.transition = 'none';
+  perla.style.transform = `translateY(${li.offsetTop + 12}px)`;
+  perla.classList.toggle('sopra', !li.querySelector('a[aria-current]'));
+  if (subito) { perla.offsetWidth; perla.style.transition = ''; }
 }
 
 function aggiornaSottomenu(sezione) {
   laterale.querySelectorAll('.sottomenu a').forEach(a => {
     if (a.dataset.sez === sezione) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
+  muoviPerla();
 }
 
 async function montaSezione(s, sezione) {

@@ -4,6 +4,7 @@ import { leggiFoglio, trovaIntestazione, abbinaColonne, intestazioni } from '../
 import { CAMPI, COLONNE_MODELLO, RIGHE_ESEMPIO, costruisciRicevute, daNetto, daLordo, SOGLIA_BOLLO } from './dati.js';
 import { creaDocx, creaZip, creaUnico } from './word.js';
 import { caricaRisorsa } from '../../lib/risorse.js';
+import { scorriNumero, comparsa } from '../../js/vivo.js';
 
 const COMMITTENTE = { nome: 'C&S CONSULENZA E SELEZIONE S.R.L.', citta: 'ROMA', indirizzo: 'Via Roberto Paribeni n. 2, CAP 00173', piva: '11312051003' };
 const URL_MODELLO_XLSX = new URL('./modello-ricevute.xlsx', import.meta.url);
@@ -14,6 +15,7 @@ const S = {
   origine: 'esempio', nomeFile: '', fogli: [{ nome: 'Esempio', righe: RIGHE_ESEMPIO }], foglio: 0, date1904: false,
   riga: 0, mappa: {}, comuni: {}, opzioni: { maiuscolo: true, raggruppa: false },
   ricevute: [], righeLette: 0, scelta: 0,
+  prec: {}, animaRighe: true,   // per far scorrere i totali e far comparire le righe
 };
 try { const o = JSON.parse(localStorage.getItem('cs.ricevute.opzioni') || 'null'); if (o) Object.assign(S.opzioni, o); } catch (e) { /* niente memoria locale */ }
 const righe = () => S.fogli[S.foglio].righe;
@@ -29,6 +31,7 @@ export function montaGenera(el, ctx) {
         <h3><span class="n">1</span>File Excel</h3>
         <label class="drop" id="ric-drop">
           <input type="file" id="ric-input" accept=".xlsx,.xlsm,.csv">
+          <svg class="drop-icona" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
           <strong>Scegli o trascina il file</strong>
           <span>.xlsx oppure .csv · una riga per collaboratore</span>
         </label>
@@ -106,8 +109,8 @@ export function montaGenera(el, ctx) {
       `<span class="hint">${S.righeLette} ${S.righeLette === 1 ? 'riga letta' : 'righe lette'} dal foglio «${escHtml(f[S.foglio].nome)}»</span>` +
       `<span><button class="linkbtn" id="ric-torna-esempio" type="button">Torna ai dati di esempio</button></span>`;
     const sel = $('#ric-foglio');
-    if (sel) sel.onchange = () => { S.foglio = +sel.value; rileva(); ricalcola(); };
-    $('#ric-torna-esempio').onclick = () => { Object.assign(S, { origine: 'esempio', nomeFile: '', fogli: [{ nome: 'Esempio', righe: RIGHE_ESEMPIO }], foglio: 0, date1904: false }); rileva(); ricalcola(); };
+    if (sel) sel.onchange = () => { S.foglio = +sel.value; S.animaRighe = true; rileva(); ricalcola(); };
+    $('#ric-torna-esempio').onclick = () => { Object.assign(S, { origine: 'esempio', nomeFile: '', fogli: [{ nome: 'Esempio', righe: RIGHE_ESEMPIO }], foglio: 0, date1904: false, animaRighe: true }); rileva(); ricalcola(); };
   }
 
   function disegnaMappa() {
@@ -132,9 +135,14 @@ export function montaGenera(el, ctx) {
     const ok = S.ricevute.filter(r => !r.errori.length);
     const ko = S.ricevute.length - ok.length;
     const tot = k => ok.reduce((s, r) => s + r[k], 0);
-    const st = (k, v, c = '') => `<div class="stat"><span class="k">${k}</span><span class="v ${c}">${v}</span></div>`;
-    $('#ric-stats').innerHTML = st('Righe', S.righeLette) + st('Ricevute pronte', ok.length) + (ko ? st('Da sistemare', ko, 'err') : '') +
-      st('Totale lordo', fmtEuro(tot('lordo'))) + st('Ritenute', fmtEuro(tot('rit'))) + st('Totale netto', fmtEuro(tot('netto')));
+    const st = (k, chiave, v, euro, c = '') => `<div class="stat"><span class="k">${k}</span><span class="v ${c}" data-k="${chiave}" data-v="${v}"${euro ? ' data-euro' : ''}>${euro ? fmtEuro(v) : v}</span></div>`;
+    $('#ric-stats').innerHTML = st('Righe', 'righe', S.righeLette) + st('Ricevute pronte', 'ok', ok.length) + (ko ? st('Da sistemare', 'ko', ko, false, 'err') : '') +
+      st('Totale lordo', 'lordo', tot('lordo'), true) + st('Ritenute', 'rit', tot('rit'), true) + st('Totale netto', 'netto', tot('netto'), true);
+    $('#ric-stats').querySelectorAll('.v').forEach(x => {
+      const k = x.dataset.k, v = +x.dataset.v;
+      scorriNumero(x, S.prec[k] ?? 0, v, 'euro' in x.dataset ? fmtEuro : String);
+      S.prec[k] = v;
+    });
     $('#ric-zip').disabled = !ok.length; $('#ric-unico').disabled = !ok.length;
     $('#ric-esempio').hidden = S.origine !== 'esempio';
   }
@@ -160,6 +168,7 @@ export function montaGenera(el, ctx) {
         <td><div class="ric-chi">${escHtml(r.nominativo || '(senza nome)')}</div><div class="sub mono">${escHtml(r.p.cf || 'CF mancante')}</div></td>
         <td class="ric-nasc">${att}</td><td class="num">${m('lordo')}</td><td class="num ric-nasc">${m('rit')}</td><td class="num"><b>${m('netto')}</b></td><td>${stato(r)}</td></tr>`;
     }).join('');
+    if (S.animaRighe) { S.animaRighe = false; comparsa(tb.querySelectorAll('tr'), { passo: 32, max: 14, ritardo: 120 }); }
   }
 
   const pv = v => v ? escHtml(v) : '<span class="ric-manca" title="mancante"></span>';
@@ -225,7 +234,7 @@ export function montaGenera(el, ctx) {
   async function carica(file) {
     try {
       const wb = await leggiFoglio(file);
-      Object.assign(S, { origine: 'file', nomeFile: file.name, fogli: wb.fogli, date1904: wb.date1904 });
+      Object.assign(S, { origine: 'file', nomeFile: file.name, fogli: wb.fogli, date1904: wb.date1904, animaRighe: true });
       S.foglio = Math.max(0, wb.fogli.findIndex(s => s.righe.some(r => r && r.some(c => !isEmpty(c)))));
       rileva(); ricalcola();
       if (CAMPI.some(f => f.req && S.mappa[f.k] == null)) $('#ric-mappa').open = true;
@@ -258,11 +267,12 @@ export function montaGenera(el, ctx) {
   const salvaOpz = () => { try { localStorage.setItem('cs.ricevute.opzioni', JSON.stringify(S.opzioni)); } catch (e) { /* ignora */ } };
   $('#ric-maiuscolo').checked = S.opzioni.maiuscolo; $('#ric-raggruppa').checked = S.opzioni.raggruppa;
   $('#ric-maiuscolo').addEventListener('change', e => { S.opzioni.maiuscolo = e.target.checked; salvaOpz(); ricalcola(true); });
-  $('#ric-raggruppa').addEventListener('change', e => { S.opzioni.raggruppa = e.target.checked; salvaOpz(); ricalcola(); });
+  $('#ric-raggruppa').addEventListener('change', e => { S.opzioni.raggruppa = e.target.checked; S.animaRighe = true; salvaOpz(); ricalcola(); });
   const seleziona = i => {
     S.scelta = i;
     el.querySelectorAll('#ric-tbody tr[data-i]').forEach(tr => tr.setAttribute('aria-selected', String(+tr.dataset.i === i)));
     disegnaAnteprima();
+    comparsa(el.querySelectorAll('.ric-foglio'), { passo: 80, distanza: 12 });
     ctx.emetti('ricevuta-scelta', { i });
   };
   $('#ric-tbody').addEventListener('click', e => { const tr = e.target.closest('tr[data-i]'); if (tr) seleziona(+tr.dataset.i); });
@@ -285,6 +295,7 @@ export function montaGenera(el, ctx) {
     if (await ctx.salva(`Ricevute prestazione occasionale - tutte - ${oggiIt()}.docx`, await creaUnico(ok))) ctx.emetti('scaricato', { quante: ok.length });
   }));
 
+  S.animaRighe = true; S.prec = {};   // a ogni apertura le righe compaiono e i totali scorrono da zero
   ricalcola(true);
   return () => clearTimeout(timer);
 }

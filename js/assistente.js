@@ -8,12 +8,12 @@
 // Per collegare in futuro un assistente AI basta aggiungere qui un metodo `chiedi(domanda, contesto)`
 // che chiami un servizio esterno: il pannello e il contesto (funzione e sezione aperte) sono già pronti.
 import { ascolta } from './eventi.js';
-import { riduciMovimento } from './menu.js';
+import { riduciMovimento } from './movimento.js';
 
 export function creaAssistente() {
   const P = id => document.getElementById(id);
   const box = P('assistente');
-  let passi = [], i = 0, prefisso = '', stacca = null, punto = null;
+  let passi = [], i = 0, prefisso = '', stacca = null, punto = null, gettone = 0;
 
   function pulisci() {
     if (stacca) { stacca(); stacca = null; }
@@ -24,7 +24,18 @@ export function creaAssistente() {
     const p = passi[i];
     P('ass-contatore').textContent = `Passo ${i + 1} di ${passi.length}`;
     P('ass-titolo').textContent = p.titolo;
-    P('ass-testo').innerHTML = p.testo;
+    // l'assistente «scrive» un attimo prima di mostrare il testo
+    const testo = P('ass-testo'), tok = ++gettone;
+    if (riduciMovimento()) testo.innerHTML = p.testo;
+    else {
+      P('ass-titolo').animate([{ opacity: 0, transform: 'translateX(10px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' });
+      testo.innerHTML = '<span class="ass-scrive" role="img" aria-label="Sto scrivendo"><i></i><i></i><i></i></span>';
+      setTimeout(() => {
+        if (tok !== gettone) return;
+        testo.innerHTML = p.testo;
+        testo.animate([{ opacity: 0, transform: 'translateY(5px)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'ease-out' });
+      }, 380);
+    }
     P('ass-puntini').innerHTML = passi.map((_, j) => `<li class="${j < i ? 'fatto' : j === i ? 'ora' : ''}"></li>`).join('');
     P('ass-indietro').disabled = i === 0;
     P('ass-avanti').textContent = i === passi.length - 1 ? 'Fine' : 'Avanti';
@@ -52,7 +63,9 @@ export function creaAssistente() {
     if (!lista || !lista.length) return;
     passi = lista; i = 0; prefisso = pre ? pre + ':' : '';
     P('ass-contesto').textContent = contesto || '';
+    const eraChiuso = box.hidden;
     box.hidden = false;
+    if (eraChiuso && !riduciMovimento()) box.animate([{ opacity: 0, transform: 'translateY(18px) scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,1.2,.4,1)' });
     mostra();
     P('ass-avanti').focus({ preventScroll: true });
   }
