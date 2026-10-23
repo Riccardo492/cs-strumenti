@@ -185,7 +185,10 @@ export async function montaRinomina(el, ctx) {
     disegnaRegole();
   }
   function disegnaGettoni() {
-    const gruppo = (titolo, lista) => lista.length ? `<div class="rp-gruppo"><span class="rp-gruppo-t">${titolo}</span>${lista.map(g => `<button type="button" class="rp-gettone${S.modello.toLowerCase().includes('{' + g.t.toLowerCase() + '}') ? ' usato' : ''}" data-t="${escHtml(g.t)}" title="${escHtml(g.d)}">{${escHtml(g.t)}}</button>`).join('')}</div>` : '';
+    const gruppo = (titolo, lista) => lista.length ? `<div class="rp-gruppo"><span class="rp-gruppo-t">${titolo}</span>${lista.map(g => {
+      const usato = S.modello.toLowerCase().includes('{' + g.t.toLowerCase() + '}');
+      return `<button type="button" class="rp-gettone${usato ? ' usato' : ''}" data-t="${escHtml(g.t)}" aria-pressed="${usato}" title="${escHtml(g.d)}${usato ? ' · clicca di nuovo per toglierlo' : ''}">{${escHtml(g.t)}}${usato ? '<span class="rp-togli" aria-hidden="true">×</span>' : ''}</button>`;
+    }).join('')}</div>` : '';
     const dallExcel = S.excel ? S.excel.intestazioni.filter(Boolean).map(h => ({ t: h, d: 'colonna dell\'Excel collegato' })) : [];
     if (S.excel && colonneNominativo(S.excel.intestazioni.map(norm)).ok && !S.excel.intestazioni.some(h => norm(h) === 'nominativo')) dallExcel.unshift({ t: 'nominativo', d: 'cognome e nome dall\'Excel' });
     $('#rp-gettoni').innerHTML = gruppo('Dal file', SEGNAPOSTO_FILE) + gruppo("Dall'Excel", dallExcel) + gruppo('Dal PDF', S.pdf.attivo ? SEGNAPOSTO_PDF : []) +
@@ -561,6 +564,15 @@ export async function montaRinomina(el, ctx) {
   $('#rp-gettoni').addEventListener('click', e => {
     const b = e.target.closest('[data-t]'); if (!b) return;
     const tok = '{' + b.dataset.t + '}';
+    // già nel modello: il secondo clic lo toglie, insieme al separatore che lo accompagnava
+    const presente = new RegExp('\\{' + b.dataset.t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\}', 'gi');
+    if (presente.test(modello.value)) {
+      modello.value = modello.value.replace(presente, '').replace(/([_\-. ])[_\-. ]+/g, '$1').replace(/^[_\-. ]+|[_\-. ]+$/g, '');
+      S.modello = modello.value;
+      modello.focus(); modello.setSelectionRange(modello.value.length, modello.value.length);
+      ricalcola(); ctx.emetti('modello-cambiato');
+      return;
+    }
     const a = modello.selectionStart ?? modello.value.length, z = modello.selectionEnd ?? a;
     const prima = modello.value.slice(0, a), dopo = modello.value.slice(z);
     const sep = prima && !/[_\-\s.]$/.test(prima) ? (S.opz.spazi && S.opz.spazi !== 'lascia' ? S.opz.spazi : '_') : '';
