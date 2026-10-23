@@ -20,7 +20,24 @@ a { color: var(--accent); }
 .noscript { padding: 24px; text-align: center; }
 
 /* testata */
-.testata { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; padding-block: 14px; min-height: 64px; }
+.testata { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "marchio briciole tema"; align-items: center; gap: 8px 20px; padding-block: 14px; min-height: 64px; }
+.testata .marchio { grid-area: marchio; } .testata .briciole { grid-area: briciole; } .testata .tema { grid-area: tema; }
+@media (max-width: 640px) { .testata { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "marchio tema" "briciole briciole"; gap: 6px 12px; } .testata .briciole:empty { display: none; } }
+
+/* interruttore del tema: chiaro · automatico · scuro, con un cursore che scorre */
+.tema { position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 32px; padding: 3px; border-radius: 999px; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 70%, transparent); backdrop-filter: blur(6px); }
+.tema-cursore { position: absolute; left: 3px; top: 3px; width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 1px 4px var(--luce), 0 1px 2px rgba(0,0,0,.08); transition: translate .45s cubic-bezier(.3,1.35,.5,1); pointer-events: none; }
+.tema[data-scelta="auto"] .tema-cursore { translate: 32px 0; }
+.tema[data-scelta="dark"] .tema-cursore { translate: 64px 0; }
+.tema-voce { position: relative; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; transition: color .25s; }
+.tema-voce:hover { color: var(--ink); }
+.tema-voce[aria-pressed="true"] { color: var(--accent); }
+.tema-voce svg { width: 18px; height: 18px; transition: rotate .5s cubic-bezier(.3,1.4,.5,1), scale .3s; }
+.tema-voce[data-tema="light"][aria-pressed="true"] svg { rotate: 90deg; }
+.tema-voce[data-tema="dark"][aria-pressed="true"] svg { rotate: -20deg; }
+.tema-voce:active svg { scale: .85; }
+/* il cambio di tema si allarga come un cerchio dal bottone (js/tema.js) */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 .marchio { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 17px; letter-spacing: .01em; }
 /* il logo è usato come maschera: prende il colore --marchio, blu nel tema chiaro e chiaro nel tema scuro */
 .logo-cs { display: inline-block; background: var(--marchio); -webkit-mask: url("../assets/logo-cs-segno.png") center / contain no-repeat; mask: url("../assets/logo-cs-segno.png") center / contain no-repeat; }

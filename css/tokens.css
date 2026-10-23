@@ -1,59 +1,87 @@
 /* Token di progetto: colori, caratteri, misure.
    Layout: menu circolare al centro; aperta una funzione, il suo cerchio va in alto a sinistra
-   e il sottomenu scende a cascata nella colonna laterale; il contenuto occupa il resto. */
+   e il sottomenu scende a cascata nella colonna laterale; il contenuto occupa il resto.
+
+   Colori pensati per non stancare la vista:
+   - chiaro: niente bianco pieno sulle superfici grandi, testo grafite invece del nero;
+   - scuro: grigio-ardesia invece del nero, testo grigio chiaro invece del bianco, accenti poco saturi.
+   Tutti i testi restano sopra il contrasto minimo di leggibilità (WCAG AA, 4.5:1).
+
+   Il tema si sceglie con l'interruttore in testata (js/tema.js), che scrive data-theme su <html>:
+   "light", "dark", oppure niente per seguire il sistema. */
 :root {
-  --bg: #eef1f5;
-  --surface: #ffffff;
-  --ink: #17202b;
-  --muted: #586474;
-  --line: #d6dce4;
-  --accent: #1f4fa3;
-  --accent-ink: #ffffff;
-  --accent-soft: #e2e9f6;
-  --ok: #1d7549;
-  --ok-soft: #e1f2e8;
-  --warn: #8f5b00;
-  --warn-soft: #fbefd8;
-  --err: #b3261e;
-  --err-soft: #fbe5e3;
-  --desk: #dfe4eb;
-  --paper: #ffffff;
+  --bg: #e8ecf0;
+  --surface: #f6f7f9;
+  --ink: #1f2934;
+  --muted: #55606e;
+  --line: #d3d9e0;
+  --accent: #2b59a3;
+  --accent-ink: #f6f7f9;
+  --accent-soft: #dde6f3;
+  --ok: #226c48;
+  --ok-soft: #dcece2;
+  --warn: #865707;
+  --warn-soft: #f3e8d2;
+  --err: #a3332b;
+  --err-soft: #f4e0dd;
+  --desk: #dce1e7;
+  --paper: #fcfcfb;
   --paper-ink: #111111;
-  --shadow: 0 1px 2px rgba(23, 32, 43, .06), 0 6px 20px rgba(23, 32, 43, .07);
-  --luce: rgba(31, 79, 163, .075);        /* alone che segue il puntatore sulle schede */
+  --doc-filtro: none;                     /* anteprime dei documenti (PDF, ricevute) */
+  --shadow: 0 1px 2px rgba(31, 41, 52, .05), 0 6px 20px rgba(31, 41, 52, .06);
+  --luce: rgba(43, 89, 163, .07);         /* alone che segue il puntatore sulle schede */
   --marchio: #0b6fb0;                     /* colore del logo C&S (il blu della «&») */
 
   /* tinta di ogni funzione: hue in --h, saturazione e luminosità qui */
-  --tinta-s: 58%;
-  --tinta-fondo-l: 94%;
-  --tinta-bordo-l: 80%;
-  --tinta-ink-l: 34%;
+  --tinta-s: 46%;
+  --tinta-fondo-l: 92%;
+  --tinta-bordo-l: 79%;
+  --tinta-ink-l: 32%;
+
+  /* sfondo animato (js/campo.js): curve di livello e rilievi colorati */
+  --campo-s: 42%;
+  --campo-l: 36%;
+  --campo-linea: .17;
+  --campo-maestra: .30;
+  --campo-rilievo-s: 62%;
+  --campo-rilievo-l: 62%;
+  --campo-rilievo: .13;
+  --campo-viandante: .55;
+  --campo-viandante-s: 58%;
+  --campo-viandante-l: 46%;
 
   --font-ui: "Titillium Web", "Segoe UI", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-doc: "Arial Nova", Arial, "Liberation Sans", Helvetica, sans-serif;
   --r: 6px;
   --laterale: 272px;
+  color-scheme: light;
 }
+
+/* Tema scuro: uguale nei due blocchi (preferenza di sistema, oppure scelto a mano). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #11151b; --surface: #1a2029; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2d3642;
-    --accent: #84a8ee; --accent-ink: #0c1526; --accent-soft: #1f2c45;
-    --ok: #63c393; --ok-soft: #16301f; --warn: #e6b45c; --warn-soft: #382a10; --err: #f08b81; --err-soft: #3b1a17;
-    --desk: #0c1015; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
-    --tinta-s: 42%; --tinta-fondo-l: 19%; --tinta-bordo-l: 34%; --tinta-ink-l: 78%;
-    --luce: rgba(132, 168, 238, .09);
-    --marchio: #eef2f6;
+    --bg: #171b21; --surface: #1f242c; --ink: #d6dce4; --muted: #97a1ae; --line: #2f3741;
+    --accent: #8eaee2; --accent-ink: #131b2a; --accent-soft: #233148;
+    --ok: #77bf9b; --ok-soft: #1b2e24; --warn: #d6b06a; --warn-soft: #332a18; --err: #e5978e; --err-soft: #3a2220;
+    --desk: #12161b; --paper: #e9eaec; --doc-filtro: brightness(.9) contrast(.96);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .28);
+    --luce: rgba(142, 174, 226, .08); --marchio: #dfe5ec;
+    --tinta-s: 34%; --tinta-fondo-l: 21%; --tinta-bordo-l: 36%; --tinta-ink-l: 76%;
+    --campo-s: 30%; --campo-l: 72%; --campo-linea: .11; --campo-maestra: .2;
+    --campo-rilievo-s: 45%; --campo-rilievo-l: 50%; --campo-rilievo: .16; --campo-viandante: .5; --campo-viandante-s: 50%; --campo-viandante-l: 70%;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #11151b; --surface: #1a2029; --ink: #e5e9ef; --muted: #9aa5b3; --line: #2d3642;
-  --accent: #84a8ee; --accent-ink: #0c1526; --accent-soft: #1f2c45;
-  --ok: #63c393; --ok-soft: #16301f; --warn: #e6b45c; --warn-soft: #382a10; --err: #f08b81; --err-soft: #3b1a17;
-  --desk: #0c1015; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
-  --tinta-s: 42%; --tinta-fondo-l: 19%; --tinta-bordo-l: 34%; --tinta-ink-l: 78%;
-  --luce: rgba(132, 168, 238, .09);
-  --marchio: #eef2f6;
+  --bg: #171b21; --surface: #1f242c; --ink: #d6dce4; --muted: #97a1ae; --line: #2f3741;
+  --accent: #8eaee2; --accent-ink: #131b2a; --accent-soft: #233148;
+  --ok: #77bf9b; --ok-soft: #1b2e24; --warn: #d6b06a; --warn-soft: #332a18; --err: #e5978e; --err-soft: #3a2220;
+  --desk: #12161b; --paper: #e9eaec; --doc-filtro: brightness(.9) contrast(.96);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 8px 24px rgba(0, 0, 0, .28);
+  --luce: rgba(142, 174, 226, .08); --marchio: #dfe5ec;
+  --tinta-s: 34%; --tinta-fondo-l: 21%; --tinta-bordo-l: 36%; --tinta-ink-l: 76%;
+  --campo-s: 30%; --campo-l: 72%; --campo-linea: .11; --campo-maestra: .2;
+  --campo-rilievo-s: 45%; --campo-rilievo-l: 50%; --campo-rilievo: .16; --campo-viandante: .5; --campo-viandante-s: 50%; --campo-viandante-l: 70%;
   color-scheme: dark;
 }

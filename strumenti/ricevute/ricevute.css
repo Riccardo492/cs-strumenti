@@ -38,7 +38,7 @@ details.ric-mappa[open] summary::before { transform: rotate(45deg); }
 .ric-scrivania { background: var(--desk); border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 150px); overflow-y: auto; }
 
 /* foglio A4 in scala: 1pt = 100cqw/595 */
-.ric-foglio { flex: none; container-type: inline-size; background: var(--paper); color: var(--paper-ink); aspect-ratio: 210 / 297; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,.18); position: relative; overflow: hidden; }
+.ric-foglio { flex: none; container-type: inline-size; background: var(--paper); color: var(--paper-ink); filter: var(--doc-filtro); aspect-ratio: 210 / 297; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,.18); position: relative; overflow: hidden; }
 .ric-pg { --pt: calc(100cqw / 595); position: absolute; inset: 0; font-family: var(--font-doc); font-size: calc(var(--pt) * 10); line-height: 1.16; padding: calc(var(--pt) * 58) calc(var(--pt) * 13) 0 calc(var(--pt) * 33); }
 .ric-pg p { margin: 0 0 calc(var(--pt) * 6); }
 .ric-pg .s11 { font-size: calc(var(--pt) * 11); }

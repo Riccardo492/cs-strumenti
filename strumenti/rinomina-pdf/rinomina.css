@@ -49,7 +49,7 @@ details.rp-altro summary { cursor: pointer; font-weight: 600; font-size: 13.5px;
 .rp-ant-testa .lat-tit { margin: 0; }
 .rp-mod-anteprima figure { margin: 0; display: grid; gap: 4px; }
 .rp-mod-anteprima figcaption { font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.rp-mod-anteprima canvas { width: 100%; height: auto; background: #fff; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
+.rp-mod-anteprima canvas { width: 100%; height: auto; background: #fff; filter: var(--doc-filtro); border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
 .rp-mod-anteprima .hint { margin: 0; }
 .rp-nota-esempio { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13.5px; color: var(--muted); width: 100%; }
 

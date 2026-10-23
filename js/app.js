@@ -2,7 +2,9 @@
 // Indirizzi: "#"  → menu;  "#ricevute" → prima sezione;  "#ricevute.modello" → sezione precisa.
 import STRUMENTI from '../strumenti/elenco.js';
 import { disegnaMenu, chiudiMenu, riapriMenu, vola, cascata, rettangoloNodo, geometriaMenu, riduciMovimento } from './menu.js';
-import { creaCampo, attivaMicroInterazioni, comparsa } from './vivo.js';
+import { attivaMicroInterazioni, comparsa } from './vivo.js';
+import { creaCampo } from './campo.js';
+import { montaInterruttoreTema } from './tema.js';
 import { creaAssistente } from './assistente.js';
 import { emetti } from './eventi.js';
 import { salvaFile, avviso } from '../lib/salva.js';
@@ -20,6 +22,21 @@ let primoGiro = true;   // all'apertura diretta di un indirizzo niente animazion
 const campo = creaCampo($('#campo'), { tinte: STRUMENTI.map(s => s.tinta) });
 campo.geometria(geometriaMenu);
 attivaMicroInterazioni();
+montaInterruttoreTema($('#tema'), { cambiato: ({ x, y }) => campo.onda(x, y, .7) });
+
+// un clic sullo sfondo (non su un comando o una scheda) manda un'onda sulla mappa
+const NON_SFONDO = 'a, button, input, select, textarea, label, summary, .card, .barra, .assistente, .nodo, .mozzo, .tabella, .avviso, .tema';
+document.addEventListener('pointerdown', e => {
+  if (e.button === 0 && e.target instanceof Element && !e.target.closest(NON_SFONDO)) campo.onda(e.clientX, e.clientY, .45);
+});
+
+/** Centro e raggio del cerchio della funzione aperta: lo sfondo ci mette il suo rilievo. */
+function cerchioAperto() {
+  const a = document.getElementById('ancora');
+  if (!a || vistaStr.hidden) return null;
+  const r = a.getBoundingClientRect();
+  return r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 } : null;
+}
 
 disegnaMenu(vistaMenu, STRUMENTI, {
   scegli(id, rect) {
@@ -67,7 +84,7 @@ async function apriStrumento(s, sezione) {
   if (dalMenu && da) await chiudiMenu(s.id);
   smontaAttuale();
   attuale = { s, sezione: null, smonta: null };
-  campo.modalita('strumento');
+  campo.modalita('strumento', { tinta: s.tinta, fuoco: cerchioAperto });
   disegnaLaterale(s, sezione);
   vistaMenu.hidden = true; vistaStr.hidden = false;
   window.scrollTo(0, 0);

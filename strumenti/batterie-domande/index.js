@@ -3,7 +3,7 @@ import { icona, montaInCostruzione } from '../comune.js';
 export default {
   id: 'batterie-domande',
   nome: 'Batterie di domande',
-  descrizione: 'Genera batterie di quiz da una banca domande, con più versioni e griglie di correzione.',
+  descrizione: 'Batterie di quiz da una banca domande, con più versioni e griglie di correzione.',
   tinta: 278,
   stato: 'in costruzione',
   icona: icona('<rect x="3.5" y="7" width="13" height="13.5" rx="2"/><path d="M7.5 4h10.5a2.5 2.5 0 0 1 2.5 2.5V17"/><path d="M8.3 11.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4M10.1 17h.01"/>'),

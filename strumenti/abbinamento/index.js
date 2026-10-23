@@ -3,7 +3,7 @@ import { icona, montaInCostruzione } from '../comune.js';
 export default {
   id: 'abbinamento',
   nome: 'Abbinamento file per ID',
-  descrizione: "Unisce l'elenco candidati e il prospetto anonimo delle correzioni tramite l'ID elaborato.",
+  descrizione: "Unisce l'elenco candidati e le correzioni anonime tramite l'ID elaborato.",
   tinta: 168,
   stato: 'in costruzione',
   icona: icona('<rect x="3" y="4" width="7.5" height="9.5" rx="1.5"/><rect x="13.5" y="10.5" width="7.5" height="9.5" rx="1.5"/><path d="M10.5 8.5h3a2.5 2.5 0 0 1 2.5 2.5"/><path d="M6 7.5h2M6 10h2M16.5 14h2M16.5 16.5h2"/>'),

@@ -4,7 +4,16 @@ Raccolta di strumenti per la gestione dei concorsi, in un'unica pagina web.
 
 Il menu è circolare: al centro c'è il cerchio principale, intorno le funzioni. Quando ne scegli una, il suo cerchio si sposta in alto a sinistra e sotto si apre a cascata il sottomenu. Ogni sezione può avere un **assistente passo passo** («Guidami passo passo») e dei **siti collegati**.
 
-L'interfaccia è animata: sullo sfondo vagano particelle che reagiscono al puntatore, dal cerchio centrale partono impulsi verso le funzioni e, se nessuno tocca il menu per qualche secondo, il centro presenta da solo le funzioni una alla volta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
+L'interfaccia è animata. Lo sfondo è una mappa topografica che respira:
+- ogni funzione del menu è un rilievo nel suo colore e il puntatore solleva una piccola collina;
+- le curve di livello scendono piano, così dai cerchi sembrano partire anelli;
+- piccole luci scorrono lungo le curve;
+- un clic manda un'onda sulla mappa;
+- aperta una funzione, la mappa prende la sua tinta e il rilievo segue il suo cerchio in alto a sinistra.
+
+Dal cerchio centrale partono impulsi verso le funzioni e, se nessuno tocca il menu per qualche secondo, il centro presenta da solo le funzioni una alla volta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
+
+In alto a destra si sceglie il tema: **chiaro**, **automatico** (come il sistema) o **scuro**. Ogni browser ricorda la scelta. I colori sono pensati per non stancare la vista: niente bianco pieno nel tema chiaro, niente nero pieno nel tema scuro, contrasti sempre leggibili, anteprime dei documenti attenuate al buio.
 
 Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati a nessun server.
 
@@ -24,7 +33,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 index.html                  la pagina
 assets/                     logo C&S (usato come maschera: prende il colore del tema) e icona della scheda
 css/
-  tokens.css                colori, caratteri, misure (tema chiaro e scuro)
+  tokens.css                colori, caratteri, misure (tema chiaro e scuro, intensità dello sfondo --campo-*)
   base.css                  bottoni, campi, schede, etichette, tabelle
   menu.css                  menu circolare, colonna laterale, sottomenu
   assistente.css            pannello dell'assistente
@@ -33,7 +42,9 @@ js/
   menu.js                   disegno del menu e animazioni
   assistente.js             guida passo passo
   eventi.js                 eventi tra le funzioni e l'assistente
-  vivo.js                   campo animato di sfondo, onde sui bottoni, luce sulle schede, numeri che scorrono
+  campo.js                  sfondo animato: mappa topografica con rilievi, onde e luci
+  tema.js                   interruttore chiaro / automatico / scuro
+  vivo.js                   onde sui bottoni, luce sulle schede, numeri che scorrono
   movimento.js              rispetta l'impostazione di sistema «riduci movimento»
 lib/                        utilità condivise da tutte le funzioni
   excel.js                  lettura di .xlsx e .csv, riconoscimento colonne
