@@ -3,6 +3,7 @@ import { escHtml, fmtNum, fmtEuro, isEmpty, isoToIt, colLetter, oggiIt, parseMon
 import { leggiFoglio, trovaIntestazione, abbinaColonne, intestazioni } from '../../lib/excel.js';
 import { CAMPI, COLONNE_MODELLO, RIGHE_ESEMPIO, costruisciRicevute, daNetto, daLordo, SOGLIA_BOLLO } from './dati.js';
 import { creaDocx, creaZip, creaUnico } from './word.js';
+import { caricaRisorsa } from '../../lib/risorse.js';
 
 const COMMITTENTE = { nome: 'C&S CONSULENZA E SELEZIONE S.R.L.', citta: 'ROMA', indirizzo: 'Via Roberto Paribeni n. 2, CAP 00173', piva: '11312051003' };
 const URL_MODELLO_XLSX = new URL('./modello-ricevute.xlsx', import.meta.url);
@@ -309,9 +310,9 @@ export function montaModello(el, ctx) {
     </div>
   </div>`;
   el.querySelector('#ric-scarica-modello').addEventListener('click', async () => {
-    const r = await fetch(URL_MODELLO_XLSX);
-    if (!r.ok) { ctx.avviso('Non trovo il modello Excel.'); return; }
-    if (await ctx.salva('Modello ricevute occasionali.xlsx', await r.blob())) ctx.emetti('modello-scaricato');
+    let blob;
+    try { blob = await caricaRisorsa(URL_MODELLO_XLSX); } catch (e) { ctx.avviso(e.message); return; }
+    if (await ctx.salva('Modello ricevute occasionali.xlsx', blob)) ctx.emetti('modello-scaricato');
   });
 }
 

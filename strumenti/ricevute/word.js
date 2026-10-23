@@ -3,6 +3,7 @@
 // che contiene {{R_ENTE}} viene ripetuta per ogni attività della ricevuta.
 // Per cambiare l'aspetto della ricevuta si modifica il .docx in Word lasciando intatti i segnaposto.
 import { escXml } from '../../lib/formati.js';
+import { caricaRisorsa } from '../../lib/risorse.js';
 
 const URL_MODELLO = new URL('./modello-ricevuta.docx', import.meta.url);
 const DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
@@ -10,9 +11,7 @@ let M = null;
 
 async function modello() {
   if (M) return M;
-  const r = await fetch(URL_MODELLO);
-  if (!r.ok) throw new Error('Non trovo il modello della ricevuta (modello-ricevuta.docx).');
-  const zip = await JSZip.loadAsync(await r.arrayBuffer());
+  const zip = await JSZip.loadAsync(await (await caricaRisorsa(URL_MODELLO)).arrayBuffer());
   const files = {};
   for (const [path, f] of Object.entries(zip.files)) if (!f.dir) files[path] = await f.async('uint8array');
   const doc = new TextDecoder().decode(files['word/document.xml']);

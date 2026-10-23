@@ -35,6 +35,7 @@ lib/                        utilità condivise da tutte le funzioni
   formati.js                importi, date, testi
   controlli.js              codice fiscale, IBAN
   salva.js                  download dei file, avvisi
+  risorse.js                caricamento dei modelli che accompagnano le funzioni
 strumenti/
   elenco.js                 l'elenco delle funzioni nel menu
   comune.js                 icone, caricamento CSS, pagina «in costruzione»
