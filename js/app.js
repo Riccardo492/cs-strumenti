@@ -111,6 +111,7 @@ function smontaAttuale() {
 
 function disegnaLaterale(s, sezione) {
   laterale.style.setProperty('--h', s.tinta);
+  contenuto.style.setProperty('--h', s.tinta);
   laterale.innerHTML = `
     <div class="ancora-blocco" data-stato="${escHtml(s.stato)}">
       <button class="ancora" type="button" id="ancora" title="Torna al menu" aria-label="Torna al menu delle funzioni">${s.icona}</button>

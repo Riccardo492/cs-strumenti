@@ -64,10 +64,10 @@
 /* la cascata parte dal centro del cerchio */
 .sottomenu { position: relative; }
 .perla { position: absolute; left: 23px; top: 0; width: 18px; height: 18px; border-radius: 50%; pointer-events: none;
-  border: 2px solid hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); background: var(--bg);
+  border: 2px solid hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); background: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l));
   box-shadow: 0 0 0 4px hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l));
   transition: transform .5s cubic-bezier(.3,1.45,.5,1), opacity .2s; animation: perla 2.4s ease-in-out infinite; }
-.perla.sopra { background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); }
+.perla.sopra { background: var(--bg); }
 @keyframes perla { 50% { box-shadow: 0 0 0 7px hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); } }
 .sottomenu ol { list-style: none; margin: 0 0 0 31px; padding: 4px 0 4px 0; border-left: 2px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); display: grid; gap: 2px; }
 .sottomenu li { position: relative; padding-left: 18px; }

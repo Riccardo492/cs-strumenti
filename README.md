@@ -16,7 +16,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 | Abbinamento file per ID | in costruzione |
 | Controllo domande di concorso | in costruzione |
 | Batterie di domande | in costruzione |
-| Rinomina file PDF | in costruzione |
+| Rinomina file PDF | pronta |
 
 ## Struttura
 
@@ -39,6 +39,7 @@ lib/                        utilità condivise da tutte le funzioni
   formati.js                importi, date, testi
   controlli.js              codice fiscale, IBAN
   salva.js                  download dei file, avvisi
+  file.js                   raccolta di file trascinati, anche cartelle e archivi .zip
   risorse.js                caricamento dei modelli che accompagnano le funzioni
 strumenti/
   elenco.js                 l'elenco delle funzioni nel menu
@@ -48,7 +49,9 @@ strumenti/
     dati.js · word.js · vista.js · ricevute.css
     modello-ricevuta.docx   il modello Word con i segnaposto
     modello-ricevute.xlsx   il modello Excel da compilare
-  abbinamento/ · controllo-domande/ · batterie-domande/ · rinomina-pdf/
+  rinomina-pdf/
+    index.js · vista.js · regole.js · pdftesto.js · esempio.js · rinomina.css
+  abbinamento/ · controllo-domande/ · batterie-domande/
 ```
 
 Non serve nessuna installazione né compilazione: sono file HTML, CSS e JavaScript (moduli ES). L'unica libreria esterna è [JSZip](https://stuk.github.io/jszip/), caricata da cdnjs, che serve ad aprire e creare i file .docx, .xlsx e .zip.
@@ -101,6 +104,18 @@ Ogni passo ha `titolo`, `testo` (HTML) e, se vuoi:
 - `avanzaQuando`: il nome di un evento (o un elenco) che la funzione emette con `ctx.emetti(...)`; quando arriva l'assistente passa al passo successivo.
 
 Più avanti si può collegare un assistente AI che risponde a domande libere: va aggiunto in `js/assistente.js` e richiede un piccolo servizio esterno con una chiave API, perché la chiave non può stare in una pagina pubblica.
+
+## Rinomina file PDF
+
+Si caricano i PDF (anche una cartella intera o un .zip), si scrive il **modello del nome** e si scarica uno ZIP con i file rinominati: gli originali non vengono toccati. Il nome si compone con:
+
+- **dal file**: `{file}` (nome attuale), `{n}` (progressivo), `{cartella}`, `{oggi}`;
+- **da un Excel collegato**: ogni colonna diventa un segnaposto, per esempio `{COGNOME}`. Il file si abbina alla riga per nome uguale, per nome che contiene il valore (es. `elaborato_0012.pdf` ↔ `0012`), per testo contenuto nel PDF (es. il codice fiscale) oppure in ordine;
+- **dal testo del PDF**: `{pdf:cf}` (codice fiscale trovato), `{pdf:testo}` (testo dopo un'etichetta, es. «Protocollo n.», o con un'espressione regolare), `{pdf:pagine}`.
+
+Il testo dei PDF viene letto con [PDF.js](https://mozilla.github.io/pdf.js/) di Mozilla, caricato da jsDelivr solo quando si attiva la lettura. I PDF scansionati senza riconoscimento del testo non hanno testo da leggere.
+
+Le regole di nome si possono salvare: restano nel browser di chi le salva.
 
 ## Ricevute: cambiare il modello Word
 
