@@ -95,7 +95,8 @@ export default {
   },
   async monta(el, ctx) {              // disegna la sezione ctx.sezione dentro el
     await caricaCss(new URL('./stile.css', import.meta.url));
-    el.innerHTML = '…';
+    const { montaSezione } = await import('./vista.js');   // la parte pesante si carica solo all'apertura
+    montaSezione(el, ctx);
     // ctx.emetti('file-caricati')   → l'assistente va avanti da solo
     // ctx.salva(nomeFile, blob)     → offre il file da scaricare
     // ctx.avviso('Testo')           → messaggio breve a schermo
@@ -105,6 +106,18 @@ export default {
 ```
 
 2. Aggiungila a `strumenti/elenco.js`. Il menu circolare si ridispone da solo in base al numero di funzioni.
+
+### Ogni funzione è isolata dalle altre
+
+Così si può lavorare su una funzione senza rischiare le altre:
+
+- **Codice:** ogni funzione vive nella sua cartella `strumenti/<nome>/` e non importa niente dalle altre funzioni, solo da `lib/` e `strumenti/comune.js`.
+- **Stili:** gli stili di una funzione hanno un prefisso tutto suo (`ric-`, `rp-`…) e si caricano solo quando la funzione si apre.
+- **Caricamento:** `index.js` contiene solo la scheda (nome, sezioni, guida); il resto si carica con `import()` dentro `monta`. Se una funzione ha un errore:
+  - nel caricamento della scheda, il menu la nasconde e mostra le altre;
+  - nella sua sezione, solo quella sezione mostra un messaggio di errore.
+- **Parti in comune:** `lib/`, `strumenti/comune.js`, `css/` e `js/` sono usate da tutte le funzioni. Quando si cambiano vanno provate tutte.
+- **Pubblicazione:** il sito pubblica solo il ramo `main`. Una funzione nuova si sviluppa su un ramo a parte (per esempio `abbinamento`) e si unisce a `main` quando è pronta: fino ad allora i colleghi non vedono niente.
 
 Per una funzione ancora da fare basta `monta: montaInCostruzione` e un campo `progetto` con `obiettivo`, `cosaFara` e `servira` (vedi `strumenti/abbinamento/index.js`).
 

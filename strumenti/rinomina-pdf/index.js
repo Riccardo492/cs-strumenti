@@ -1,6 +1,5 @@
 // Scheda della funzione «Rinomina file PDF».
 import { icona, caricaCss } from '../comune.js';
-import { montaRinomina, montaRegole } from './vista.js';
 
 export default {
   id: 'rinomina-pdf',
@@ -40,6 +39,7 @@ export default {
   },
   async monta(el, ctx) {
     await caricaCss(new URL('./rinomina.css', import.meta.url));
+    const { montaRinomina, montaRegole } = await import('./vista.js');   // caricata solo quando serve
     if (ctx.sezione === 'regole') return montaRegole(el, ctx);
     return montaRinomina(el, ctx);
   },

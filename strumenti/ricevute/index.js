@@ -1,7 +1,6 @@
 // Scheda della funzione «Ricevute di pagamento».
 // Ogni funzione esporta un oggetto con questa forma: vedi README.md, sezione «Aggiungere una funzione».
 import { icona, caricaCss } from '../comune.js';
-import { montaGenera, montaModello, montaCalcoli } from './vista.js';
 
 export default {
   id: 'ricevute',
@@ -48,6 +47,7 @@ export default {
   },
   async monta(el, ctx) {
     await caricaCss(new URL('./ricevute.css', import.meta.url));
+    const { montaGenera, montaModello, montaCalcoli } = await import('./vista.js');   // caricata solo quando serve
     if (ctx.sezione === 'modello') return montaModello(el, ctx);
     if (ctx.sezione === 'calcoli') return montaCalcoli(el, ctx);
     return montaGenera(el, ctx);
