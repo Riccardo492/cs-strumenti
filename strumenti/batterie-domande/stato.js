@@ -42,7 +42,7 @@ function esempio() {
   return {
     esempio: true, prossimo: 11,
     titolo: 'Concorso per istruttore amministrativo (esempio)',
-    programma: PROGRAMMA_ESEMPIO,
+    programma: PROGRAMMA_ESEMPIO, usaProgramma: true,
     nRisposte: 3,
     materie: [
       { id: 'm1', nome: 'Diritto amministrativo', quante: 4, difficolta: 'mista', note: 'Procedimento amministrativo e accesso ai documenti (L. 241/1990)' },
@@ -81,7 +81,7 @@ function esempio() {
 function vuota() {
   return {
     esempio: false, prossimo: 1,
-    titolo: '', programma: '', nRisposte: 3,
+    titolo: '', programma: '', usaProgramma: false, nRisposte: 3,
     materie: [{ id: 'm1', nome: '', quante: 10, difficolta: 'mista', note: '' }],
     domande: [],
     versioni: { quante: 2, ordine: 'materia', risposte: true, seme: Math.floor(Math.random() * 9000) + 1000 },
@@ -108,12 +108,26 @@ export const ricomincia = () => sostituisciTutto(vuota());
 /** Torna alla batteria di esempio. */
 export const tornaEsempio = () => sostituisciTutto(esempio());
 /** Alla prima modifica vera l'esempio diventa una batteria tua: da lì in poi si salva. */
-export function diventaMia() {
+export function diventaMia({ tieniProgramma = false } = {}) {
   if (!S.esempio) return false;
   S.esempio = false;
   S.domande = S.domande.filter(q => q.origine !== 'esempio');
+  // il programma di esempio non deve finire nelle richieste di una batteria vera
+  if (!tieniProgramma) { S.programma = ''; S.usaProgramma = false; }
   if (S.titolo.endsWith('(esempio)')) S.titolo = S.titolo.replace(/\s*\(esempio\)$/, '');
   return true;
+}
+
+/** Il programma del bando da mandare a Claude: vuoto se non è attivato. */
+export const programmaAttivo = () => S.usaProgramma && S.programma.trim() ? S.programma : '';
+
+/** La materia compare nel programma? (controllo indicativo sulle parole del nome) */
+const GENERICHE = new Set(['diritto', 'elementi', 'nozioni', 'principi', 'cenni', 'legislazione', 'normativa', 'materia', 'disciplina', 'generale', 'generali', 'conoscenza', 'tecniche']);
+export function materiaNelProgramma(nome) {
+  const prog = ' ' + norm(S.programma) + ' ';
+  const parole = norm(nome).split(' ').filter(w => w.length > 3 && !GENERICHE.has(w));
+  if (!parole.length) return true;
+  return parole.every(w => prog.includes(' ' + w.slice(0, Math.max(4, Math.min(6, w.length - 2)))));
 }
 
 /* ---------- materie e domande ---------- */

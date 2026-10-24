@@ -27,6 +27,21 @@
 .bt-togli:hover { color: var(--err); border-color: var(--err); }
 .bt-materie-piede { gap: 8px 14px; }
 
+/* interruttore del programma */
+.bt-interruttore { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; align-items: start; cursor: pointer; }
+.bt-interruttore input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.bt-int-segno { position: relative; width: 40px; height: 24px; border-radius: 12px; background: var(--line); transition: background .25s; margin-top: 1px; }
+.bt-int-segno::after { content: ""; position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: translate .3s cubic-bezier(.3,1.4,.5,1); }
+.bt-interruttore input:checked + .bt-int-segno { background: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); }
+.bt-interruttore input:checked + .bt-int-segno::after { translate: 16px 0; }
+.bt-interruttore input:focus-visible + .bt-int-segno { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bt-interruttore > span:last-child { display: grid; gap: 1px; }
+.bt-interruttore small { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.bt-prog-corpo { display: grid; gap: 10px; }
+.bt-avviso-mat { grid-column: 1 / -1; margin: -2px 0 2px; padding: 5px 10px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); font-size: 12.5px; }
+.bt-base { margin: -4px 0 0; }
+.bt-base a { font-weight: 600; }
+
 /* 2 · genera */
 .bt-modo-riga { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 14px; }
 .bt-modo-riga > span:last-child { flex: 1 1 300px; color: var(--muted); }

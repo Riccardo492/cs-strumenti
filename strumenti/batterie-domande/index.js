@@ -10,7 +10,7 @@ export default {
   stato: 'pronto',
   icona: icona('<rect x="3.5" y="7" width="13" height="13.5" rx="2"/><path d="M7.5 4h10.5a2.5 2.5 0 0 1 2.5 2.5V17"/><path d="M8.3 11.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4M10.1 17h.01"/>'),
   sezioni: [
-    { id: 'imposta', nome: '1 · Imposta la prova', breve: 'Materie, difficoltà, programma del bando', descrizione: 'Indica le materie, quante domande per ciascuna e con quale difficoltà. Il programma del bando serve a tenere le domande dentro gli argomenti giusti.' },
+    { id: 'imposta', nome: '1 · Imposta la prova', breve: 'Materie, difficoltà, programma del bando', descrizione: 'Indica le materie, quante domande per ciascuna e con quale difficoltà. Se vuoi, usa il programma del bando come base per gli argomenti.' },
     { id: 'genera', nome: '2 · Genera le domande', breve: 'Claude scrive i quesiti', descrizione: 'Claude scrive i quesiti a risposta multipla materia per materia. Fuori da Claude si copia la richiesta e si incolla la risposta.' },
     { id: 'controllo', nome: '3 · Secondo controllo', breve: 'Doppioni, attinenza, risposte esatte', descrizione: 'Ogni domanda viene ricontrollata da capo: doppioni, attinenza alla materia e al programma, risposta esatta giusta e unica.' },
     { id: 'esporta', nome: '4 · Versioni e stampa', breve: 'Word, Excel, griglie di correzione', descrizione: 'Prepara le versioni mescolate (A, B, C…), la batteria in Word, l\'Excel delle domande e le griglie di correzione.' },
@@ -23,8 +23,8 @@ export default {
     imposta: [
       { titolo: 'Dai un titolo alla prova', punta: '#bt-prova',
         testo: '<p>Il titolo compare in testa a ogni pagina della batteria. Scegli anche quante risposte deve avere ogni domanda: di solito 3 o 4.</p>' },
-      { titolo: 'Incolla il programma del bando', punta: '#bt-programma',
-        testo: "<p>Copia dal bando la parte con le materie d'esame e incollala qui. Claude la usa per restare dentro gli argomenti, e il secondo controllo per scartare le domande fuori tema.</p><p>Con <b>Ricava le materie</b> l'elenco delle materie si compila da solo.</p>" },
+      { titolo: 'Programma del bando (facoltativo)', punta: '#bt-programma',
+        testo: "<p>Se vuoi che le domande seguano il programma del bando, attiva <b>Usa il programma del bando come base</b> e incolla la parte con le materie d'esame. Con <b>Ricava le materie</b> l'elenco si compila da solo.</p><p>Spento, contano solo le materie e gli argomenti che scrivi tu. In ogni caso ogni domanda riguarda solo la sua materia.</p>" },
       { titolo: 'Materie, quantità e difficoltà', punta: '#bt-materie',
         testo: "<p>Per ogni materia indica quante domande servono e la difficoltà. <b>Mista</b> divide le domande in 30% facili, 50% medie e 20% difficili.</p><p>Negli argomenti puoi indicare cosa privilegiare, per esempio una legge precisa.</p>" },
       { titolo: 'Passa alla generazione', punta: '#bt-avanti',

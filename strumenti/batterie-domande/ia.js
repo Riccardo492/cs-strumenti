@@ -121,32 +121,40 @@ export function normalizzaControllo(dati, domande) {
 }
 
 /* ---------- testi delle richieste ---------- */
-const DESCRIZIONE_LIVELLI = `- facile: nozioni di base, definizioni, fonti principali;
-- media: applicazione delle regole, distinzioni tra istituti simili, competenze e procedure;
-- difficile: casi particolari, eccezioni, termini e passaggi specifici delle procedure.`;
+const DESCRIZIONE_LIVELLI = `- facile: nozioni di base e definizioni;
+- media: applicazione di regole e procedure, distinzioni tra concetti simili;
+- difficile: casi particolari, eccezioni, dettagli specifici.`;
 
-const blocco = (titolo, t) => t ? `\n${titolo}:\n"""\n${t.trim().slice(0, 12000)}\n"""\n` : '';
 const quote = r => LIVELLI_TESTO.filter(([k]) => r[k]).map(([k, uno, tanti]) => `${r[k]} ${r[k] === 1 ? uno : tanti}`).join(', ');
 const LIVELLI_TESTO = [['facile', 'facile', 'facili'], ['media', 'di media difficoltà', 'di media difficoltà'], ['difficile', 'difficile', 'difficili']];
-const formatoDomanda = (nRisposte, conMateria) => `{${conMateria ? '"materia": "nome della materia esattamente come sopra", ' : ''}"domanda": "testo", "risposte": [${Array.from({ length: nRisposte }, (_, i) => `"testo risposta ${LETTERE[i]}"`).join(', ')}], "esatta": "lettera della risposta esatta", "difficolta": "facile" | "media" | "difficile", "argomento": "argomento del programma", "riferimento": "norma o fonte, se esiste"}`;
+const formatoDomanda = (nRisposte, conMateria) => `{${conMateria ? '"materia": "nome della materia esattamente come sopra", ' : ''}"domanda": "testo", "risposte": [${Array.from({ length: nRisposte }, (_, i) => `"testo risposta ${LETTERE[i]}"`).join(', ')}], "esatta": "lettera della risposta esatta", "difficolta": "facile" | "media" | "difficile", "argomento": "argomento della materia", "riferimento": "norma, linea guida o fonte, se esiste"}`;
 const REGOLE_SCRITTURA = n => `Regole:
 - Ogni quesito ha esattamente ${n} risposte e una sola è corretta; le altre sono plausibili ma sicuramente sbagliate.
 - Risposte di lunghezza e forma simili, senza «tutte le precedenti» o «nessuna delle precedenti».
 - Italiano corretto, formulazione chiara e non ambigua, niente doppie negazioni.
-- Riferimenti normativi aggiornati alla normativa vigente: non usare norme abrogate o sostituite.
-- Ogni quesito deve rientrare nella materia e nel programma d'esame; varia gli argomenti.
-- Varia la posizione della risposta esatta.`;
+- Contenuti aggiornati: normativa vigente, linee guida e conoscenze attuali della materia; niente norme abrogate o superate.
+- Varia gli argomenti all'interno della materia e la posizione della risposta esatta.`;
+
+// Il programma del bando è facoltativo: se c'è, serve solo a scegliere gli argomenti DENTRO la materia.
+// La materia indicata comanda sempre: se il programma non ne parla, si segue solo il nome della materia.
+const bloccoProgramma = (programma, perControllo = false) => programma && programma.trim() ? `
+Programma d'esame del bando${perControllo ? '' : ", da usare come base per scegliere gli argomenti della materia"}:
+"""
+${programma.trim().slice(0, 12000)}
+"""
+${perControllo ? '' : "Se il programma non tratta questa materia, ignoralo e segui solo il nome della materia e gli argomenti indicati.\n"}` : '';
 
 /** Richiesta per scrivere le domande di una materia (una parte, se sono tante). */
 export function richiestaGenera({ titolo, programma, materia, conteggi, nRisposte, giaScritte = [], motivo = '' }) {
   const tot = conteggi.facile + conteggi.media + conteggi.difficile;
   return `Sei un esperto nella preparazione di prove preselettive e scritte per concorsi pubblici italiani.
-Scrivi ${tot} quesit${tot === 1 ? 'o' : 'i'} a risposta multipla per ${titolo ? `«${titolo}»` : 'un concorso pubblico'}.
+Scrivi ${tot} quesit${tot === 1 ? 'o' : 'i'} a risposta multipla di «${materia.nome}» per ${titolo ? `«${titolo}»` : 'un concorso pubblico'}.
 
-Materia: «${materia.nome}»${materia.note ? `\nArgomenti da privilegiare: ${materia.note}` : ''}
+Materia: «${materia.nome}»
+Tutti i quesiti devono riguardare esclusivamente questa materia: nessuna domanda di altre discipline.${materia.note ? `\nArgomenti da privilegiare: ${materia.note}` : ''}
 Difficoltà: ${quote(conteggi)}.
 ${DESCRIZIONE_LIVELLI}
-${blocco("Programma d'esame del bando (le domande devono restare dentro questi argomenti)", programma)}
+${bloccoProgramma(programma)}
 ${REGOLE_SCRITTURA(nRisposte)}
 ${motivo ? `\nNota: ${motivo}\n` : ''}${giaScritte.length ? `\nNon ripetere e non riformulare questi quesiti già presenti nella batteria:\n${giaScritte.slice(-60).map(t => '- ' + t).join('\n')}\n` : ''}
 Rispondi solo con un array JSON, un oggetto per quesito:
@@ -163,9 +171,11 @@ export function richiestaGeneraTutto({ titolo, programma, materie, nRisposte, gi
 Scrivi i quesiti a risposta multipla per ${titolo ? `«${titolo}»` : 'un concorso pubblico'}, divisi per materia così:
 ${righe}
 
+Ogni quesito deve riguardare esclusivamente la sua materia: nessuna domanda di altre discipline.
+
 Livelli di difficoltà:
 ${DESCRIZIONE_LIVELLI}
-${blocco("Programma d'esame del bando (le domande devono restare dentro questi argomenti)", programma)}
+${bloccoProgramma(programma)}
 ${REGOLE_SCRITTURA(nRisposte)}
 ${giaScritte.length ? `\nNon ripetere e non riformulare questi quesiti già presenti nella batteria:\n${giaScritte.slice(-80).map(t => '- ' + t).join('\n')}\n` : ''}
 Rispondi solo con un array JSON, un oggetto per quesito, senza altro testo:
@@ -180,15 +190,16 @@ export function richiestaControllo({ titolo, programma, materie, domande }) {
     risposte: Object.fromEntries(q.risposte.map((r, i) => [LETTERE[i], r])), esatta: LETTERE[q.esatta],
   })).join('\n');
   const materieTxt = materie.filter(m => m.nome.trim()).map(m => `- «${m.nome}»${m.note ? `: ${m.note}` : ''}`).join('\n');
+  const conProgramma = !!(programma && programma.trim());
   return `Fai da revisore indipendente dei quesiti a risposta multipla di ${titolo ? `«${titolo}»` : 'un concorso pubblico'}.
 Non li hai scritti tu: controllali con occhio critico, uno per uno.
 
-Materie della prova:
+Materie della prova (con gli eventuali argomenti indicati):
 ${materieTxt}
-${blocco("Programma d'esame del bando", programma)}
+${bloccoProgramma(programma, true)}
 Per ogni quesito verifica:
-1. attinenza: il quesito riguarda la sua materia e rientra nel programma d'esame? "si", "no" oppure "dubbio".
-2. risposta: la risposta indicata come esatta è corretta ed è l'unica corretta secondo la normativa vigente? "si", "no" oppure "dubbio" (più risposte accettabili, formulazione ambigua, norma cambiata). Se è "no", indica in rispostaGiusta la lettera della risposta corretta, se c'è tra quelle proposte.
+1. attinenza: il quesito riguarda davvero la materia indicata accanto a lui, e non un'altra disciplina?${conProgramma ? " Se il programma d'esame tratta quella materia, il quesito rientra nei suoi argomenti?" : ''} "si", "no" oppure "dubbio".
+2. risposta: la risposta indicata come esatta è corretta ed è l'unica corretta, secondo la normativa vigente e le conoscenze attuali della materia? "si", "no" oppure "dubbio" (più risposte accettabili, formulazione ambigua, norma o indicazione cambiata). Se è "no", indica in rispostaGiusta la lettera della risposta corretta, se c'è tra quelle proposte.
 3. doppione: se il quesito chiede in sostanza la stessa cosa di un altro quesito dell'elenco, indica in doppioneDi l'id dell'altro (solo per il secondo dei due).
 
 Quesiti (uno per riga):

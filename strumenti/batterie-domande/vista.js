@@ -9,7 +9,7 @@ import { comparsa } from '../../js/vivo.js';
 import {
   S, salva, ricomincia, tornaEsempio, diventaMia, DIFFICOLTA, LIVELLI, LETTERE, nomeDifficolta, ripartisci,
   materia, nomeMateria, nuovaMateria, togliMateria, domandeDi, domanda, aggiungiDomande, sostituisci, togliDomanda,
-  domandeOrdinate, problemi, ISTRUZIONI_BASE,
+  domandeOrdinate, problemi, ISTRUZIONI_BASE, programmaAttivo, materiaNelProgramma,
 } from './stato.js';
 import { claude, spiegaErrore, leggiJson, normalizzaDomande, normalizzaControllo, richiestaGenera, richiestaGeneraTutto, richiestaControllo, richiestaMaterie, chiedi, inParti } from './ia.js';
 import { trovaDoppioni } from './doppioni.js';
@@ -98,7 +98,7 @@ const titoloFile = () => safeName(S.titolo || 'Batteria').slice(0, 60) || 'Batte
 const chipDiff = d => `<span class="chip bt-diff bt-${escHtml(d)}">${escHtml(nomeDifficolta(d))}</span>`;
 const msg = (e) => e ? `<p class="msg bt-msg ${e.tipo}">${escHtml(e.testo)}</p>` : '';
 const bannerEsempio = () => S.esempio ? `<div class="bt-esempio"><span class="chip info"><span class="dot"></span>Esempio</span>
-  <span>Questa è una batteria di esempio con 10 domande già controllate: guardala in tutte le sezioni. Appena cambi le impostazioni diventa la tua e le domande di esempio spariscono.</span>
+  <span>Questa è una batteria di esempio con 10 domande già controllate: guardala in tutte le sezioni. Per preparare la tua tocca un campo del passo 1, oppure premi «Comincia da zero»: l'esempio sparisce del tutto.</span>
   <button class="btn" type="button" data-bt="nuova">Comincia da zero</button></div>` : '';
 const avanti = (sez, testo) => `<div class="bt-avanti"><a class="btn primary" id="bt-avanti" href="#${ID}.${sez}">${escHtml(testo)} →</a></div>`;
 function collegaBanner(radice, ridisegna) {
@@ -149,7 +149,7 @@ async function generaMancanti() {
       for (const parte of inParti(mancanti(m), 12)) {
         if (ctl.signal.aborted) throw { code: 'cancelled' };
         Object.assign(lavoro, { materia: m.id, scritte: 0, parte: somma(parte) }); avvisa();
-        const prompt = richiestaGenera({ titolo: S.titolo, programma: S.programma, materia: m, conteggi: parte, nRisposte: S.nRisposte, giaScritte: domandeDi(m.id).map(q => q.testo) });
+        const prompt = richiestaGenera({ titolo: S.titolo, programma: programmaAttivo(), materia: m, conteggi: parte, nRisposte: S.nRisposte, giaScritte: domandeDi(m.id).map(q => q.testo) });
         const dati = await chiedi(prompt, { signal: ctl.signal, conta: n => { lavoro.scritte = Math.min(n, lavoro.parte); avvisa(); } });
         const { buone, scartate } = normalizzaDomande(dati, { materie: S.materie, materiaFissa: m.id, nRisposte: S.nRisposte });
         const prese = buone.slice(0, somma(parte));
@@ -188,7 +188,7 @@ async function controlla(tutte) {
     for (const g of gruppiControllo(qs)) {
       if (ctl.signal.aborted) throw { code: 'cancelled' };
       Object.assign(lavoro, { parte: g.length, scritte: 0, materia: g[0].materia }); avvisa();
-      const dati = await chiedi(richiestaControllo({ titolo: S.titolo, programma: S.programma, materie: S.materie, domande: g }),
+      const dati = await chiedi(richiestaControllo({ titolo: S.titolo, programma: programmaAttivo(), materie: S.materie, domande: g }),
         { livello: 'complex', signal: ctl.signal, nuova: false, conta: n => { lavoro.scritte = Math.min(n, g.length); avvisa(); } });
       applicaControllo(normalizzaControllo(dati, g), g, n => { senza += n; });
       lavoro.fatte += g.length;
@@ -218,7 +218,7 @@ async function rigenera(q) {
   try {
     const perche = problemi(q, doppi()).filter(p => p.tipo !== 'da-controllare').map(p => p.testo).join('; ');
     const prompt = richiestaGenera({
-      titolo: S.titolo, programma: S.programma, materia: m, nRisposte: S.nRisposte,
+      titolo: S.titolo, programma: programmaAttivo(), materia: m, nRisposte: S.nRisposte,
       conteggi: { facile: 0, media: 0, difficile: 0, [q.difficolta]: 1 },
       giaScritte: domandeDi(m.id).map(x => x.testo),
       motivo: `il quesito serve a sostituirne uno scartato al secondo controllo${perche ? ` (${perche})` : ''}: deve essere diverso da tutti quelli elencati.`,
@@ -245,7 +245,27 @@ export function monta(el, ctx) {
 /* ====================== 1 · Imposta la prova ====================== */
 function montaImposta(radice, ctx) {
   /** Alla prima modifica l'esempio diventa una batteria vera; non si ridisegna, così il cursore resta dov'è. */
-  const mio = () => { if (diventaMia()) { ctx.avviso('Ora la batteria è tua: le domande di esempio sono state tolte.'); radice.querySelector('.bt-esempio')?.remove(); } };
+  const mio = campo => {
+    if (!diventaMia({ tieniProgramma: campo === 'programma' })) return;
+    ctx.avviso('Ora la batteria è tua: le domande e il programma di esempio sono stati tolti.');
+    radice.querySelector('.bt-esempio')?.remove();
+    if (campo !== 'programma') { radice.querySelector('#bt-prog').value = ''; radice.querySelector('#bt-usa-prog').checked = false; mostraProgramma(); }
+  };
+  function mostraProgramma() {
+    const on = S.usaProgramma;
+    radice.querySelector('#bt-prog-corpo').hidden = !on;
+    radice.querySelector('#bt-prog-spento').hidden = on;
+    avvisiMaterie();
+  }
+  /** Avviso sotto le materie che il programma non nomina: le domande seguiranno comunque la materia. */
+  function avvisiMaterie() {
+    radice.querySelectorAll('.bt-materia[data-id]').forEach(r => {
+      const m = materia(r.dataset.id), p = r.querySelector('.bt-avviso-mat');
+      const fuori = !!(m && m.nome.trim() && programmaAttivo() && !materiaNelProgramma(m.nome));
+      p.hidden = !fuori;
+      if (fuori) p.textContent = `«${m.nome.trim()}» non compare nel programma del bando: le domande seguiranno la materia e gli argomenti indicati, non il programma.`;
+    });
+  }
   function disegna() {
     radice.innerHTML = `${bannerEsempio()}
       <div class="bt-griglia">
@@ -258,9 +278,14 @@ function montaImposta(radice, ctx) {
           </div>
         </div>
         <div class="card" id="bt-programma">
-          <h3><span class="n">2</span>Programma del bando <span class="chip ghost">consigliato</span></h3>
-          <textarea id="bt-prog" rows="7" placeholder="Incolla qui la parte del bando con le materie d'esame"></textarea>
-          <div class="row"><button class="btn" type="button" id="bt-ricava">${ICONA_STELLA}Ricava le materie</button><span class="hint" id="bt-ricava-esito"></span></div>
+          <h3><span class="n">2</span>Programma del bando <span class="chip ghost">facoltativo</span></h3>
+          <label class="bt-interruttore"><input type="checkbox" id="bt-usa-prog" role="switch"><span class="bt-int-segno" aria-hidden="true"></span>
+            <span><b>Usa il programma del bando come base</b><small>Le domande di ogni materia prendono gli argomenti dal programma.</small></span></label>
+          <p class="hint" id="bt-prog-spento">Spento: le domande seguono solo le materie e gli argomenti che indichi qui sotto.</p>
+          <div class="bt-prog-corpo" id="bt-prog-corpo">
+            <textarea id="bt-prog" rows="7" placeholder="Incolla qui la parte del bando con le materie d'esame"></textarea>
+            <div class="row"><button class="btn" type="button" id="bt-ricava">${ICONA_STELLA}Ricava le materie</button><span class="hint" id="bt-ricava-esito"></span></div>
+          </div>
         </div>
       </div>
       <div class="card" id="bt-materie">
@@ -271,33 +296,39 @@ function montaImposta(radice, ctx) {
       </div>
       ${avanti('genera', 'Avanti: genera le domande')}`;
     const $ = s => radice.querySelector(s);
-    $('#bt-titolo').value = S.titolo; $('#bt-nrisp').value = String(S.nRisposte); $('#bt-prog').value = S.programma;
+    $('#bt-titolo').value = S.titolo; $('#bt-nrisp').value = String(S.nRisposte); $('#bt-prog').value = S.programma; $('#bt-usa-prog').checked = !!S.usaProgramma;
     collegaBanner(radice, disegna);
     $('#bt-titolo').addEventListener('input', e => { mio(); S.titolo = e.target.value; cambiato(); });
     $('#bt-nrisp').addEventListener('change', e => { mio(); S.nRisposte = +e.target.value; cambiato(); totali(); });
-    $('#bt-prog').addEventListener('input', e => { mio(); S.programma = e.target.value; cambiato(); });
+    $('#bt-prog').addEventListener('input', e => { mio('programma'); S.programma = e.target.value; cambiato(); avvisiMaterie(); });
+    $('#bt-usa-prog').addEventListener('change', e => {
+      mio('usaProgramma'); S.usaProgramma = e.target.checked; cambiato(); mostraProgramma();
+      if (S.usaProgramma && !S.programma.trim()) $('#bt-prog').focus();
+    });
     $('#bt-aggiungi').addEventListener('click', () => { mio(); nuovaMateria(); cambiato(); righe(); radice.querySelector('.bt-materia:last-child input')?.focus(); });
     $('#bt-azzera') && conferma($('#bt-azzera'), 'Sicuro? Clicca di nuovo', () => { ricomincia(); giro++; disegna(); avvisa(); });
     $('#bt-ricava').addEventListener('click', ricava);
     righe();
+    mostraProgramma();
   }
 
   function righe() {
     const box = radice.querySelector('#bt-materie-righe');
     box.innerHTML = `<div class="bt-materia bt-testa" aria-hidden="true"><span>Materia</span><span>Domande</span><span>Difficoltà</span><span>Argomenti da privilegiare</span><span></span></div>` +
       S.materie.map(m => `<div class="bt-materia" data-id="${m.id}">
-        <div class="field"><label class="bt-solo-mobile" for="bt-n-${m.id}">Materia</label><input id="bt-n-${m.id}" data-k="nome" value="${escHtml(m.nome)}" placeholder="es. Diritto amministrativo" aria-label="Nome della materia"></div>
+        <div class="field"><label class="bt-solo-mobile" for="bt-n-${m.id}">Materia</label><input id="bt-n-${m.id}" data-k="nome" value="${escHtml(m.nome)}" placeholder="es. Infermieristica" aria-label="Nome della materia"></div>
         <div class="field"><label class="bt-solo-mobile" for="bt-q-${m.id}">Domande</label><input id="bt-q-${m.id}" data-k="quante" type="number" min="0" max="300" inputmode="numeric" value="${m.quante}" aria-label="Numero di domande"></div>
         <div class="field"><label class="bt-solo-mobile" for="bt-d-${m.id}">Difficoltà</label><select id="bt-d-${m.id}" data-k="difficolta" aria-label="Difficoltà">${DIFFICOLTA.map(d => `<option value="${d.id}"${d.id === m.difficolta ? ' selected' : ''}>${escHtml(d.breve || d.nome)}</option>`).join('')}</select></div>
-        <div class="field"><label class="bt-solo-mobile" for="bt-a-${m.id}">Argomenti da privilegiare</label><input id="bt-a-${m.id}" data-k="note" value="${escHtml(m.note)}" placeholder="facoltativo, es. L. 241/1990" aria-label="Argomenti da privilegiare"></div>
+        <div class="field"><label class="bt-solo-mobile" for="bt-a-${m.id}">Argomenti da privilegiare</label><input id="bt-a-${m.id}" data-k="note" value="${escHtml(m.note)}" placeholder="facoltativo: argomenti, leggi, linee guida…" aria-label="Argomenti da privilegiare"></div>
         <button class="bt-togli" type="button" data-togli title="Togli la materia" aria-label="Togli la materia ${escHtml(m.nome)}">×</button>
+        <p class="bt-avviso-mat" hidden></p>
       </div>`).join('');
     box.querySelectorAll('.bt-materia[data-id]').forEach(r => {
       const m = materia(r.dataset.id);
       r.querySelectorAll('[data-k]').forEach(inp => inp.addEventListener(inp.tagName === 'SELECT' ? 'change' : 'input', () => {
         mio(); const k = inp.dataset.k;
         m[k] = k === 'quante' ? Math.max(0, Math.min(300, Math.round(+inp.value || 0))) : inp.value;
-        cambiato(); totali();
+        cambiato(); totali(); if (k === 'nome') avvisiMaterie();
       }));
       r.querySelector('[data-togli]').addEventListener('click', () => {
         const n = domandeDi(m.id).length;
@@ -305,7 +336,7 @@ function montaImposta(radice, ctx) {
         if (n) ctx.avviso(`Tolta la materia con le sue ${n} domande.`);
       });
     });
-    totali();
+    totali(); avvisiMaterie();
   }
 
   function totali() {
@@ -316,7 +347,8 @@ function montaImposta(radice, ctx) {
     const pl = (n, uno, tanti) => `${n} ${n === 1 ? uno : tanti}`;
     if (t) t.textContent = tot ? `Totale ${pl(tot, 'domanda', 'domande')}: ${pl(per.facile, 'facile', 'facili')}, ${pl(per.media, 'media', 'medie')}, ${pl(per.difficile, 'difficile', 'difficili')}.` : 'Aggiungi almeno una materia con il nome e il numero di domande.';
     const b = radice.querySelector('#bt-totale');
-    if (b) b.innerHTML = `<span class="bt-grande">${tot}</span><span>domande in ${S.materie.filter(m => m.nome.trim()).length} materie</span>`;
+    const nm = S.materie.filter(m => m.nome.trim()).length;
+    if (b) b.innerHTML = `<span class="bt-grande">${tot}</span><span>${tot === 1 ? 'domanda' : 'domande'} in ${pl(nm, 'materia', 'materie')}</span>`;
   }
 
   async function ricava() {
@@ -331,7 +363,7 @@ function montaImposta(radice, ctx) {
     }
     if (!lista) lista = materieDalTesto(S.programma);
     if (!lista.length) { out.textContent = 'Non riesco a riconoscere le materie: aggiungile a mano.'; return; }
-    mio();
+    mio('programma');
     S.materie = S.materie.filter(m => m.nome.trim() || domandeDi(m.id).length);
     let nuove = 0;
     for (const x of lista) if (!S.materie.some(m => norm(m.nome) === norm(x.nome))) { nuovaMateria({ nome: x.nome.slice(0, 80), note: x.note.slice(0, 200) }); nuove++; }
@@ -340,6 +372,16 @@ function montaImposta(radice, ctx) {
     out.textContent = nuove ? `Aggiunte ${nuove} materie: controlla nomi, numero di domande e difficoltà.` : 'Le materie del programma ci sono già tutte.';
   }
 
+  // Sull'esempio: appena si tocca un campo l'esempio sparisce del tutto (titolo, programma, materie, argomenti)
+  // e si riparte da una batteria vuota con il cursore nello stesso campo. Così niente dell'esempio finisce nelle richieste.
+  radice.addEventListener('focusin', e => {
+    if (!S.esempio || !(e.target instanceof Element) || !e.target.matches('input, select, textarea, button:not([data-bt="nuova"])')) return;
+    const id = e.target.id;
+    ricomincia(); giro++; disegna(); avvisa();
+    ctx.avviso("Esempio tolto: ora prepari la tua batteria.");
+    const nuovo = id && radice.querySelector('#' + CSS.escape(id));
+    if (nuovo && nuovo.matches('input:not([type=checkbox]), select, textarea')) nuovo.focus();
+  });
   disegna();
   return registra(() => {});   // la sezione si ridisegna solo da sé, per non perdere il cursore mentre si scrive
 }
@@ -371,6 +413,7 @@ function montaGenera(radice, ctx) {
     <div class="card bt-modo" id="bt-modo"></div>
     <div class="card" id="bt-genera">
       <h3>Domande per materia</h3>
+      <p class="hint bt-base" id="bt-base"></p>
       <div class="bt-avanz" id="bt-avanzamento"></div>
       <div class="bt-azioni-gen" id="bt-genera-azioni"></div>
       <div id="bt-genera-msg"></div>
@@ -406,6 +449,9 @@ function montaGenera(radice, ctx) {
         : `<p class="bt-modo-riga"><span class="chip warn"><span class="dot"></span>Copia e incolla</span><span>Questa pagina non è aperta dentro Claude: copia la richiesta qui sotto, incollala in una chat con Claude e incolla qui la risposta.</span></p>`;
     // avanzamento per materia
     const valide = S.materie.filter(m => m.nome.trim());
+    $('#bt-base').innerHTML = programmaAttivo()
+      ? `Le domande seguono le materie e il <b>programma del bando</b>. <a href="#${ID}.imposta">Cambia</a>`
+      : `Le domande seguono solo le materie e gli argomenti indicati: il programma del bando non è usato. <a href="#${ID}.imposta">Cambia</a>`;
     $('#bt-avanzamento').innerHTML = valide.length ? valide.map(m => {
       const { tot, per } = conteggio(m), manca = somma(mancanti(m));
       const qui = lavoro?.tipo === 'genera' && lavoro.materia === m.id;
@@ -436,7 +482,7 @@ function montaGenera(radice, ctx) {
     // copia e incolla
     const vediCopia = modo === 'copia' || copiaAperta.genera;
     const daChiedere = S.materie.filter(m => m.nome.trim()).map(m => ({ ...m, conteggi: mancanti(m) })).filter(m => somma(m.conteggi) > 0);
-    const richiesta = daChiedere.length ? richiestaGeneraTutto({ titolo: S.titolo, programma: S.programma, materie: daChiedere, nRisposte: S.nRisposte, giaScritte: domandeOrdinate().map(q => q.testo) }) : '';
+    const richiesta = daChiedere.length ? richiestaGeneraTutto({ titolo: S.titolo, programma: programmaAttivo(), materie: daChiedere, nRisposte: S.nRisposte, giaScritte: domandeOrdinate().map(q => q.testo) }) : '';
     const firma = vediCopia + '|' + richiesta;
     if (firma !== firmaCopia) {
       firmaCopia = firma;
@@ -503,6 +549,7 @@ async function importaExcel(file) {
     const k = norm(r[0]), v = clean(r[1]);
     if (k === 'titolo' && v && !S.titolo) S.titolo = v;
     if (k === 'programma del bando' && v && !S.programma.trim()) S.programma = String(r[1]);
+    if (k === 'usa il programma del bando') S.usaProgramma = norm(v).startsWith('s');
     if (k === 'risposte per domanda' && +v >= 2 && +v <= 5) S.nRisposte = +v;
   }
   const mat = trova('materie'), infoMat = new Map();
@@ -594,7 +641,7 @@ function montaControllo(radice, ctx) {
     // copia e incolla
     const vedi = ((modo === 'copia' && c.dafare.length) || copiaAperta.controllo) && lavoro?.tipo !== 'controllo';
     const daFare = c.dafare.length ? c.dafare : c.tutte;
-    const richiesta = vedi && daFare.length ? richiestaControllo({ titolo: S.titolo, programma: S.programma, materie: S.materie, domande: daFare }) : '';
+    const richiesta = vedi && daFare.length ? richiestaControllo({ titolo: S.titolo, programma: programmaAttivo(), materie: S.materie, domande: daFare }) : '';
     const firma = vedi + '|' + richiesta;
     if (firma !== firmaCopia) {
       firmaCopia = firma;
@@ -857,7 +904,7 @@ async function excelDomande() {
     { nome: 'Domande', colonne, righe },
     { nome: 'Materie', colonne: [{ titolo: 'Materia', larghezza: 30, stile: 'testo' }, { titolo: 'Domande previste', larghezza: 11, stile: 'centro' }, { titolo: 'Presenti', larghezza: 10, stile: 'centro' }, { titolo: 'Facili', larghezza: 9, stile: 'centro' }, { titolo: 'Medie', larghezza: 9, stile: 'centro' }, { titolo: 'Difficili', larghezza: 9, stile: 'centro' }, { titolo: 'Difficoltà richiesta', larghezza: 14 }, { titolo: 'Argomenti', larghezza: 50, stile: 'testo' }], righe: materie },
     { nome: 'Impostazioni', colonne: [{ titolo: 'Voce', larghezza: 22 }, { titolo: 'Valore', larghezza: 90, stile: 'testo' }], filtri: false, righe: [
-      ['Titolo', S.titolo], ['Risposte per domanda', S.nRisposte], ['Programma del bando', S.programma], ['Versioni', S.versioni.quante], ['Seme delle versioni', S.versioni.seme], ['Creato il', oggiIt('/')],
+      ['Titolo', S.titolo], ['Risposte per domanda', S.nRisposte], ['Programma del bando', S.programma], ['Usa il programma del bando', S.usaProgramma ? 'sì' : 'no'], ['Versioni', S.versioni.quante], ['Seme delle versioni', S.versioni.seme], ['Creato il', oggiIt('/')],
     ] },
   ]);
 }
