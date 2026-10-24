@@ -24,7 +24,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 | Ricevute di pagamento | pronta |
 | Abbinamento file per ID | in costruzione |
 | Controllo domande di concorso | in costruzione |
-| Batterie di domande | in costruzione |
+| Batterie di domande | pronta |
 | Rinomina file PDF | pronta |
 
 ## Struttura
@@ -53,6 +53,7 @@ lib/                        utilità condivise da tutte le funzioni
   salva.js                  download dei file, avvisi
   file.js                   raccolta di file trascinati, anche cartelle e archivi .zip
   risorse.js                caricamento dei modelli che accompagnano le funzioni
+  xlsx.js                   scrittura di file Excel (.xlsx)
 strumenti/
   elenco.js                 l'elenco delle funzioni nel menu
   comune.js                 icone, caricamento CSS, pagina «in costruzione»
@@ -129,6 +130,30 @@ Ogni passo ha `titolo`, `testo` (HTML) e, se vuoi:
 - `avanzaQuando`: il nome di un evento (o un elenco) che la funzione emette con `ctx.emetti(...)`; quando arriva l'assistente passa al passo successivo.
 
 Più avanti si può collegare un assistente AI che risponde a domande libere: va aggiunto in `js/assistente.js` e richiede un piccolo servizio esterno con una chiave API, perché la chiave non può stare in una pagina pubblica.
+
+## Batterie di domande
+
+Quattro passi, uno per sezione del sottomenu:
+
+1. **Imposta la prova**: titolo, numero di risposte per domanda (3, 4 o 5), programma del bando, materie con quantità e difficoltà.
+   - **Mista** divide le domande in 30% facili, 50% medie e 20% difficili.
+   - **Ricava le materie** compila l'elenco dal programma del bando.
+2. **Genera le domande**: Claude scrive i quesiti materia per materia, a gruppi di 12, e genera solo quelli mancanti. Si può fermare e riprendere. Si può anche caricare un Excel di domande, per esempio uno salvato da questa pagina.
+3. **Secondo controllo**: ogni domanda viene ricontrollata da capo.
+   - **Doppioni**: la pagina li trova da sola confrontando i testi; le parole rare pesano di più (`doppioni.js`).
+   - **Attinenza e risposta esatta**: Claude fa da revisore indipendente. Verifica se la domanda è attinente alla materia e al programma, se la risposta esatta è giusta ed è l'unica, e se la domanda chiede la stessa cosa di un'altra. Per il controllo usa il modello più accurato.
+   - **Correzioni**: per ogni segnalazione si può usare la risposta suggerita, rigenerare la domanda, modificarla, toglierla o confermarla.
+4. **Versioni e stampa**:
+   - **Versioni**: mescolate con un *seme*. Con lo stesso seme si ottengono sempre le stesse versioni.
+   - **Word**: una batteria per versione, più a scelta la copia per la commissione con le risposte esatte in grassetto.
+   - **Excel delle domande**: domande con l'esito del controllo; si può ricaricare nella pagina.
+   - **Griglie di correzione**: in Excel, una per versione più il riepilogo.
+
+**Come si collega a Claude.** Dentro Claude (l'anteprima su claude.ai) la pagina chiede direttamente con la capacità `sample`. Usa l'account di chi la usa e alla prima richiesta Claude chiede il permesso. Altrove (sito GitHub) la pagina prepara la stessa richiesta: la si copia in una chat con Claude e si incolla qui la risposta. Il formato è identico (`ia.js`).
+
+**Salvataggio.** La bozza resta salvata nel browser di chi la prepara. Senza bozza la pagina mostra una batteria di esempio; alla prima modifica l'esempio diventa una batteria vera e le domande di esempio spariscono.
+
+File: `stato.js` (dati ed esempio), `ia.js` (richieste a Claude e lettura delle risposte), `doppioni.js`, `versioni.js`, `word.js` (il .docx costruito da zero), `vista.js`, `batterie.css`. L'Excel si scrive con `lib/xlsx.js`, condiviso.
 
 ## Rinomina file PDF
 
