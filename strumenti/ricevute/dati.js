@@ -16,7 +16,7 @@ export const CAMPI = [
   { k: 'numDoc', label: 'Numero documento', syn: ['numero di documento', 'numero documento', 'n documento', 'num documento', 'nr documento', 'numero doc', 'n doc'] },
   { k: 'tel', label: 'Telefono', syn: ['tel', 'telefono', 'telefono fisso'] },
   { k: 'cell', label: 'Cellulare', syn: ['cell', 'cellulare', 'mobile', 'numero di cellulare'] },
-  { k: 'email', label: 'E-mail', syn: ['email', 'e mail', 'mail', 'indirizzo e mail', 'indirizzo email', 'posta elettronica'] },
+  { k: 'email', label: 'E-mail', syn: ['email', 'e mail', 'mail', 'indirizzo e mail', 'indirizzo email', 'indirizzo mail', 'indirizzo di posta elettronica', 'posta elettronica', 'mail personale'] },
   { k: 'iban', label: 'IBAN', syn: ['iban', 'codice iban'] },
   { k: 'mansione', label: 'Mansione svolta', comune: true, syn: ['mansione', 'mansioni', 'mansione i svolta e', 'mansione svolta', 'mansioni svolte', 'ruolo', 'attivita svolta', 'incarico'] },
   { k: 'ente', label: 'Ente', comune: true, syn: ['ente', 'amministrazione', 'ente committente'] },
@@ -65,6 +65,19 @@ export function daNetto(netto, inps = 0) { const lordo = Math.round((netto + inp
 /** Dal lordo: ritenuta = 20% del lordo; netto = lordo − ritenuta − INPS. */
 export function daLordo(lordo, inps = 0) { const rit = Math.round(lordo / 5); return { lordo, rit, inps, netto: lordo - rit - inps }; }
 
+/**
+ * Luogo e data di nascita. Alcuni elenchi li mettono insieme in una sola colonna
+ * («CAGLIARI IL 20/06/1995», «nato a Cagliari il 20/06/1995», «Cagliari, 20/06/1995»): li separa.
+ */
+const NASCITA_UNITA = /^(?:nat[oa]\s+a\s+)?(.*?)[\s,;–-]*(?:\b(?:il|in data|del)\b\s*)?(\d{1,2}[\/.\-]\d{1,2}[\/.\-](?:\d{4}|\d{2}))\s*$/i;
+export function nascita(luogo, data, U = s => s) {
+  if (luogo && !data) {
+    const m = NASCITA_UNITA.exec(luogo);
+    if (m && m[1].trim()) return { luogoNascita: U(m[1].trim()), dataNascita: parseDate(m[2]) };
+  }
+  return { luogoNascita: U(luogo.replace(/^nat[oa]\s+a\s+/i, '')), dataNascita: data };
+}
+
 const TOPONIMI = /^(VIA|VIALE|V\.LE|PIAZZA|PIAZZALE|PIAZZETTA|P\.ZZA|P\.ZA|P\.LE|CORSO|C\.SO|LARGO|VICOLO|VICO|STRADA|LOCALIT[AÀ]|LOC\.|CONTRADA|C\.DA|BORGO|FRAZIONE|FRAZ\.|LUNGOMARE|SALITA|RIONE|TRAVERSA|VIOTTOLO)\s+(.+)$/i;
 function separaIndirizzo(a) {
   const m = TOPONIMI.exec(a);
@@ -98,7 +111,7 @@ export function costruisciRicevute({ righe, riga, mappa, comuni, opzioni, date19
     rec.push({
       riga: i + 1,
       cognome: U(txt('cognome')), nome: U(txt('nome')),
-      luogoNascita: U(txt('luogoNascita')), dataNascita: dt('dataNascita'),
+      ...nascita(txt('luogoNascita'), dt('dataNascita'), U),
       residenza: U(txt('residenza')), indirizzo: U(txt('indirizzo')),
       cf: txt('cf').toUpperCase().replace(/[\s.\-]/g, ''),
       tipoDoc: U(txt('tipoDoc')), numDoc: U(txt('numDoc')),

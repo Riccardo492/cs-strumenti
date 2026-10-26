@@ -5,6 +5,10 @@
 .ric-nomefile { font-weight: 600; word-break: break-all; }
 .ric-campi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
 .ric-campi .largo { grid-column: 1 / -1; }
+.ric-da-compilare { background: var(--warn-soft); color: var(--warn); }
+.ric-campi .field.da-compilare label { color: var(--warn); }
+.ric-campi .field.da-compilare input { border-color: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
+.ric-campi .field.da-compilare label::after { content: " · da compilare"; font-weight: 600; }
 .ric-opz { gap: 10px; }
 
 details.ric-mappa { background-color: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
