@@ -172,6 +172,13 @@ La regola pronta «Elaborati → codice domanda e nominativo» fa tutto insieme:
 
 Le regole di nome si possono salvare: restano nel browser di chi le salva.
 
+## Ricevute: quali file Excel vanno bene
+
+Va bene il modello della sezione «Modello Excel», ma anche un elenco del personale fatto a mano: le colonne si riconoscono dal nome.
+- **Errori di battitura:** si riconoscono anche intestazioni con un errore, per esempio «CONGOME» per cognome.
+- **Nascita in una sola colonna:** «NATO A» con dentro «CAGLIARI IL 20/06/1995» viene separata in luogo e data di nascita.
+- **Colonne che mancano:** se il file non ha compenso, ente, data, mansione o tipologia, la pagina lo segnala nei «Valori comuni» e lì si scrivono una volta per tutti.
+
 ## Ricevute: cambiare il modello Word
 
 `strumenti/ricevute/modello-ricevuta.docx` è il modello. Si può aprire e modificare in Word lasciando intatti i segnaposto:

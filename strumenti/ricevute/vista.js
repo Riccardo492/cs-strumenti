@@ -41,6 +41,7 @@ export function montaGenera(el, ctx) {
       <div class="card" id="ric-comuni">
         <h3><span class="n">2</span>Valori comuni</h3>
         <p class="hint">Usati solo dove la cella del file è vuota. Comodi quando tutti hanno lavorato allo stesso concorso.</p>
+        <p class="msg ric-da-compilare" id="ric-da-compilare" hidden></p>
         <div class="ric-campi">
           <div class="field largo"><label for="ric-c-mansione">Mansione svolta</label><input id="ric-c-mansione" data-comune="mansione" placeholder="es. ASSISTENZA D'AULA PER CONCORSO PUBBLICO"></div>
           <div class="field"><label for="ric-c-ente">Ente</label><input id="ric-c-ente" data-comune="ente" placeholder="es. COMUNE DI SELARGIUS"></div>
@@ -95,8 +96,22 @@ export function montaGenera(el, ctx) {
     S.ricevute = r.ricevute; S.righeLette = r.righeLette;
     if (tieni && prima) { const j = S.ricevute.findIndex(x => x.att[0] && prima.att[0] && x.att[0].riga === prima.att[0].riga); S.scelta = j >= 0 ? j : 0; }
     else S.scelta = 0;
-    disegnaInfo(); disegnaMappa(); disegnaStats(); disegnaTabella(); disegnaAnteprima();
+    disegnaInfo(); disegnaMappa(); disegnaComuni(); disegnaStats(); disegnaTabella(); disegnaAnteprima();
   };
+
+  /** Se il file non ha una colonna (compenso, ente, data…) e il valore comune è vuoto, lo segnala nei «Valori comuni». */
+  function disegnaComuni() {
+    const vuoto = k => S.mappa[k] == null && !String(S.comuni[k] || '').trim();
+    const mancano = S.origine === 'esempio' ? [] : ['mansione', 'ente', 'tipologia', 'dataAttivita', 'netto'].filter(k =>
+      k === 'netto' ? vuoto('netto') && S.mappa.lordo == null : vuoto(k));
+    el.querySelectorAll('[data-comune]').forEach(inp => inp.closest('.field').classList.toggle('da-compilare', mancano.includes(inp.dataset.comune)));
+    const box = $('#ric-da-compilare');
+    box.hidden = !mancano.length;
+    if (mancano.length) {
+      const nomi = mancano.map(k => k === 'netto' ? 'compenso' : CAMPI.find(f => f.k === k).label.toLowerCase());
+      box.textContent = `Nel file non ci ${mancano.length === 1 ? 'è' : 'sono'} ${nomi.join(', ').replace(/, ([^,]*)$/, ' e $1')}: ${mancano.length === 1 ? 'scrivilo' : 'scrivili'} qui sotto, valgono per tutti.`;
+    }
+  }
   let timer; const ricalcolaPresto = () => { clearTimeout(timer); timer = setTimeout(() => ricalcola(true), 160); };
 
   function disegnaInfo(err) {
