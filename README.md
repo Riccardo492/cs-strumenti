@@ -13,6 +13,8 @@ L'interfaccia è animata. Lo sfondo è una mappa topografica che respira:
 
 Dal cerchio centrale partono impulsi verso le funzioni e, se nessuno tocca il menu per qualche secondo, il centro presenta da solo le funzioni una alla volta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
 
+In alto a destra c'è anche lo **stile**: **vetro** (superfici traslucide che sfocano lo sfondo colorato, `css/vetro.css`) oppure **classico**. Il vetro sfoca solo le superfici principali, per non pesare sulla scheda video. Se il browser non sa sfocare, o chi usa la pagina ha chiesto meno trasparenze nel sistema, le superfici diventano quasi piene.
+
 In alto a destra si sceglie il tema: **chiaro**, **automatico** (come il sistema) o **scuro**. Ogni browser ricorda la scelta. I colori sono pensati per non stancare la vista: niente bianco pieno nel tema chiaro, niente nero pieno nel tema scuro, contrasti sempre leggibili, anteprime dei documenti attenuate al buio.
 
 Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati a nessun server.
@@ -37,6 +39,7 @@ css/
   base.css                  bottoni, campi, schede, etichette, tabelle
   menu.css                  menu circolare, colonna laterale, sottomenu
   assistente.css            pannello dell'assistente
+  vetro.css                 stile vetro (si attiva con data-stile="vetro" su <html>)
 js/
   app.js                    avvio e navigazione (#funzione.sezione)
   menu.js                   disegno del menu e animazioni
@@ -44,6 +47,7 @@ js/
   eventi.js                 eventi tra le funzioni e l'assistente
   campo.js                  sfondo animato: mappa topografica con rilievi, onde e luci
   tema.js                   interruttore chiaro / automatico / scuro
+  stile.js                  interruttore stile vetro / classico
   vivo.js                   onde sui bottoni, luce sulle schede, numeri che scorrono
   movimento.js              rispetta l'impostazione di sistema «riduci movimento»
 lib/                        utilità condivise da tutte le funzioni

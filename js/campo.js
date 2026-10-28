@@ -15,6 +15,7 @@ const PASSO = .12;             // distanza tra due curve di livello
 const MAESTRA = 5;             // una curva ogni 5 è più marcata, come sulle carte
 const DISCESA = PASSO / 9000;  // le curve scendono di un passo ogni 9 secondi
 const FOTOGRAMMA = 1000 / 31;  // lo sfondo si muove piano: 30 fotogrammi al secondo bastano e risparmiano batteria
+const FOTOGRAMMA_STRUMENTO = 1000 / 16;  // dentro una funzione lo sfondo si vede poco: ancora meno fotogrammi
 const DERIVA = .000013;        // velocità con cui il terreno cambia forma
 
 /* rumore simplex 2D (Gustavson), con permutazione fissa */
@@ -386,7 +387,7 @@ export function creaCampo(canvas, { tinte }) {
   /* ---------- ciclo ---------- */
   function ciclo(t) {
     raf = requestAnimationFrame(ciclo);
-    if (t - ultimo < FOTOGRAMMA - 4) return;
+    if (t - ultimo < (modo === 'menu' ? FOTOGRAMMA : FOTOGRAMMA_STRUMENTO) - 4) return;
     const dt = Math.min(64, (t - ultimo) || 32); ultimo = t;
     tempo += dt;
     disegna(dt);
@@ -407,7 +408,7 @@ export function creaCampo(canvas, { tinte }) {
   window.addEventListener('pointerout', e => { if (!e.relatedTarget) pt.dentro = false; });
   document.addEventListener('visibilitychange', () => document.hidden ? ferma() : avvia());
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', leggiColori);
-  new MutationObserver(leggiColori).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  new MutationObserver(leggiColori).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-stile'] });
   quandoCambiaMovimento(() => { if (riduciMovimento()) { ferma(); richiediFermo(); } else avvia(); });
   avvia();
   if (riduciMovimento()) richiediFermo();

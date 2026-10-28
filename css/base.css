@@ -21,7 +21,7 @@ a { color: var(--accent); }
 
 /* testata */
 .testata { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "marchio briciole tema"; align-items: center; gap: 8px 20px; padding-block: 14px; min-height: 64px; }
-.testata .marchio { grid-area: marchio; } .testata .briciole { grid-area: briciole; } .testata .tema { grid-area: tema; }
+.testata .marchio { grid-area: marchio; } .testata .briciole { grid-area: briciole; } .testata .testata-azioni { grid-area: tema; }
 @media (max-width: 640px) { .testata { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "marchio tema" "briciole briciole"; gap: 6px 12px; } .testata .briciole:empty { display: none; } }
 
 /* interruttore del tema: chiaro · automatico · scuro, con un cursore che scorre */
