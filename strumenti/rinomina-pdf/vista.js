@@ -1,5 +1,6 @@
 // Rinomina PDF: interfaccia delle sezioni «Rinomina» e «Regole di nome».
 import { escHtml, oggiIt, isEmpty } from '../../lib/formati.js';
+import { impronta } from '../../lib/attivita.js';
 import { leggiFoglio, trovaIntestazione, intestazioni, scriviCsv } from '../../lib/excel.js';
 import { raccogliFile, fmtDimensione } from '../../lib/file.js';
 import { scorriNumero, comparsa } from '../../js/vivo.js';
@@ -554,6 +555,7 @@ export async function montaRinomina(el, ctx) {
     const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE', mimeType: 'application/zip' }, m => avanza(`Preparo lo ZIP… ${Math.round(m.percent)}%`));
     if (await ctx.salva(`PDF rinominati - ${oggiIt()}.zip`, blob)) {
       ctx.emetti('scaricato');
+      if (S.origine !== 'esempio') ctx.registra?.({ azione: 'rinominati', n: inclusi.length, chiave: impronta(inclusi.map(r => r.nuovo).join('|')) });
       if (S.mod.attivo) setTimeout(() => ctx.avviso(`Testo cambiato in ${cambiati} PDF` + (invariati ? `; ${invariati} lasciati com'erano` : '')), 1600);
     }
   }));

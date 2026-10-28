@@ -2,9 +2,26 @@
 // Quattro passi, uno per sezione: imposta la prova → genera le domande → secondo controllo → versioni e stampa.
 import { icona, caricaCss } from '../comune.js';
 
+/** Conteggi della batteria in lavorazione (dallo stato salvato nel browser). */
+async function conti() {
+  const { S } = await import('./stato.js');
+  const materie = S.materie.filter(m => m.nome.trim() && m.quante > 0);
+  const ids = new Set(materie.map(m => m.id));
+  const qs = S.domande.filter(q => ids.has(q.materia));
+  const fatto = q => q.controllo?.stato === 'fatto';
+  return {
+    esempio: S.esempio, titolo: S.titolo.trim(), materie: materie.length, versioni: S.versioni?.quante || 0,
+    previste: materie.reduce((t, m) => t + m.quante, 0), presenti: qs.length,
+    mancano: Math.max(0, materie.reduce((t, m) => t + Math.max(0, m.quante - qs.filter(q => q.materia === m.id).length), 0)),
+    dafare: qs.filter(q => !fatto(q)).length,
+    rivedere: qs.filter(q => fatto(q) && !q.accettata && (q.controllo.attinenza !== 'si' || q.controllo.risposta !== 'si' || q.controllo.doppioneDi)).length,
+  };
+}
+
 export default {
   id: 'batterie-domande',
   nome: 'Batterie di domande',
+  etichetta: 'Batterie',  // nome breve, nella barra in alto
   descrizione: 'Quiz a risposta multipla per materia e difficoltà, con un secondo controllo e le versioni da stampare.',
   tinta: 278,
   stato: 'pronto',
@@ -55,6 +72,30 @@ export default {
         testo: "<p><b>Word</b>: una batteria per versione. <b>Excel delle domande</b>: tutte le domande con l'esito del controllo, ricaricabile in questa pagina. <b>Griglie</b>: la risposta esatta di ogni domanda, versione per versione.</p>" },
     ],
   },
+  /** Il percorso a tappe sopra la pagina: una tappa per sezione, con lo stato della batteria. */
+  async percorso() {
+    const c = await conti();
+    return {
+      imposta: { fatto: c.materie > 0, nota: c.materie ? `${c.materie} ${c.materie === 1 ? 'materia' : 'materie'}` : '' },
+      genera: { fatto: c.previste > 0 && c.mancano === 0, nota: c.previste ? `${c.presenti} di ${c.previste}` : '' },
+      controllo: { fatto: c.presenti > 0 && !c.dafare && !c.rivedere, nota: c.rivedere ? `${c.rivedere} da rivedere` : c.dafare ? `${c.dafare} da controllare` : c.presenti ? 'tutto a posto' : '' },
+      esporta: { fatto: false, nota: c.versioni ? `${c.versioni} ${c.versioni === 1 ? 'versione' : 'versioni'}` : '' },
+    };
+  },
+  /** Cose da fare, per la Scrivania e il numerino sulla pillola (la batteria di esempio non conta). */
+  async promemoria() {
+    const c = await conti();
+    if (c.esempio || !c.presenti && !c.materie) return [];
+    const titolo = c.titolo || 'Batteria in lavorazione';
+    const out = [];
+    if (c.rivedere) out.push({ testo: `${c.rivedere} ${c.rivedere === 1 ? 'domanda' : 'domande'} da rivedere`, dettaglio: titolo, href: '#batterie-domande.controllo', livello: 'alto', n: c.rivedere });
+    if (c.dafare) out.push({ testo: `${c.dafare} ${c.dafare === 1 ? 'domanda' : 'domande'} da controllare`, dettaglio: titolo, href: '#batterie-domande.controllo', livello: 'medio', n: c.dafare });
+    if (c.mancano && c.presenti) out.push({ testo: `Mancano ${c.mancano} ${c.mancano === 1 ? 'domanda' : 'domande'}`, dettaglio: titolo, href: '#batterie-domande.genera', livello: 'medio', n: 0 });
+    if (c.presenti && !c.mancano && !c.rivedere && !c.dafare) out.push({ testo: 'Batteria pronta da stampare', dettaglio: titolo, href: '#batterie-domande.esporta', livello: 'ok', n: 0 });
+    return out;
+  },
+  /** Carica in anticipo stile e vista, quando il browser è libero: così aprire la funzione è immediato. */
+  precarica() { return Promise.all([caricaCss(new URL('./batterie.css', import.meta.url)), import('./vista.js')]); },
   async monta(el, ctx) {
     await caricaCss(new URL('./batterie.css', import.meta.url));
     const v = await import('./vista.js');   // caricata solo quando serve

@@ -4,17 +4,21 @@ import { escHtml } from '../lib/formati.js';
 /** Icona a tratto su griglia 24×24. */
 export const icona = tracciati => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${tracciati}</svg>`;
 
-/** Carica (una volta sola) il foglio di stile di una funzione. */
+/** Carica (una volta sola) il foglio di stile di una funzione; chi lo chiede mentre arriva aspetta lo stesso caricamento. */
+const fogli = new Map();
 export function caricaCss(url) {
   const href = String(url);
+  if (fogli.has(href)) return fogli.get(href);
   if (document.querySelector(`link[data-css="${CSS.escape(href)}"]`)) return Promise.resolve();
-  return new Promise(res => {
+  const p = new Promise(res => {
     const l = document.createElement('link');
     l.rel = 'stylesheet'; l.href = href; l.dataset.css = href;
     l.onload = l.onerror = () => res();
     document.head.appendChild(l);
     setTimeout(res, 1500);
   });
+  fogli.set(href, p);
+  return p;
 }
 
 /**

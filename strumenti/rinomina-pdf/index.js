@@ -4,6 +4,7 @@ import { icona, caricaCss } from '../comune.js';
 export default {
   id: 'rinomina-pdf',
   nome: 'Rinomina file PDF',
+  etichetta: 'Rinomina PDF',  // nome breve, nella barra in alto
   descrizione: 'Rinomina in blocco i PDF con un modello, un Excel o il testo letto nei documenti.',
   tinta: 350,
   stato: 'pronto',
@@ -37,6 +38,8 @@ export default {
         testo: '<p>Qui trovi tutte le parti variabili che puoi mettere nel nome, da scrivere tra parentesi graffe.</p>' },
     ],
   },
+  /** Carica in anticipo stile e vista, quando il browser è libero: così aprire la funzione è immediato. */
+  precarica() { return Promise.all([caricaCss(new URL('./rinomina.css', import.meta.url)), import('./vista.js')]); },
   async monta(el, ctx) {
     await caricaCss(new URL('./rinomina.css', import.meta.url));
     const { montaRinomina, montaRegole } = await import('./vista.js');   // caricata solo quando serve

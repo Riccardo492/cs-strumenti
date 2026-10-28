@@ -1,0 +1,213 @@
+/* Struttura della pagina, come una dashboard:
+   - testata in due righe: marchio · pillole delle funzioni · comandi; sotto, percorso · sotto-schede · stato;
+   - vista: intestazione della pagina (titolo grande), percorso a tappe dove c'è, contenuto;
+   - passaggi tra le viste (View Transitions): titolo, icona della funzione e contenuto si trasformano. */
+
+/* ====================== testata ====================== */
+.testata { display: grid; grid-template-columns: minmax(0, 1fr); padding-block: 12px 0; }
+.barra-alta { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "marchio pillole azioni"; align-items: center; gap: 10px 18px; min-height: 48px; }
+.barra-alta .marchio { grid-area: marchio; }
+.barra-alta .pillole { grid-area: pillole; justify-self: center; }
+.barra-alta .testata-azioni { grid-area: azioni; justify-self: end; }
+.barra-bassa { display: flex; align-items: center; gap: 4px 16px; min-height: 44px; margin-top: 10px; border-top: 1px solid var(--line); }
+.barra-bassa .briciole { flex: none; flex-wrap: nowrap; white-space: nowrap; }
+.schede:not(:empty) { margin-left: 4px; padding-left: 16px; border-left: 1px solid var(--line); }
+
+/* ---------- pillole delle funzioni ----------
+   Due strati uguali: le pillole normali e, sopra, una copia «accesa» ritagliata sulla pillola scelta (js/app.js).
+   Il ritaglio scorre: fondo pieno e testo chiaro si spostano insieme. */
+.pillole {
+  --x: 0px; --w: 0px; --pill: var(--ink);
+  position: relative; display: flex; gap: 2px; padding: 4px; min-width: 0; max-width: 100%;
+  border-radius: 999px; background: var(--surface); border: 1px solid var(--line);
+  overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none;
+}
+.pillole::-webkit-scrollbar { display: none; }
+.pillole.di-funzione { --pill: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); }
+.pillola {
+  position: relative; flex: none; display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px;
+  border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap;
+  transition: color .2s, background-color .2s;
+}
+.pillola[data-id]:not([data-id=""])::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none; background: hsl(var(--h) 58% 52%); }
+a.pillola:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); }
+a.pillola:focus-visible { outline-offset: -2px; }
+.pillola.in-arrivo { opacity: .66; }
+.pillola-n { min-width: 18px; height: 18px; padding: 0 5px; margin-right: -4px; border-radius: 9px; display: inline-grid; place-items: center; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--err-soft); color: var(--err); }
+.pillole-luce {
+  position: absolute; left: 0; top: 0; bottom: 0; width: max-content; display: flex; gap: 2px; padding: 4px; pointer-events: none;
+  background: var(--pill); color: var(--accent-ink);
+  clip-path: inset(4px calc(100% - var(--x) - var(--w)) 4px var(--x) round 999px);
+}
+.pillole-luce .pillola { color: inherit; }
+.pillole-luce .pillola::before { background: currentColor; opacity: .75; }
+.pillole-luce .pillola-n { background: color-mix(in srgb, currentColor 22%, transparent); color: inherit; }
+.pillole.pronte .pillole-luce { transition: clip-path .55s cubic-bezier(.34, 1.18, .5, 1), background-color .45s; }
+
+/* ---------- comandi a destra ---------- */
+.testata-azioni { display: flex; align-items: center; gap: 8px; }
+.btn.piccolo { min-height: 38px; padding: 4px 15px; border-radius: 999px; }
+.nuovo, .profilo { position: relative; }
+.campanella, .avatar { position: relative; width: 40px; height: 40px; flex: none; display: grid; place-items: center; padding: 0; border-radius: 50%; cursor: pointer; }
+.campanella { border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--muted); transition: color .25s, border-color .25s; }
+.campanella:hover { color: var(--ink); border-color: var(--accent); }
+.campanella svg { width: 20px; height: 20px; transform-origin: 50% 15%; }
+.campanella:hover svg { animation: suona .7s ease-in-out; }
+@keyframes suona { 20% { rotate: 14deg; } 45% { rotate: -11deg; } 70% { rotate: 6deg; } 100% { rotate: 0deg; } }
+.bollino { position: absolute; top: -4px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--err); color: var(--accent-ink); box-shadow: 0 0 0 2px var(--bg-pieno); }
+.bollino:not([hidden]) { animation: bollino .5s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes bollino { from { scale: 0; } }
+.avatar { border: 0; color: #f6fbfa; font-weight: 700; font-size: 14px; letter-spacing: .02em;
+  background: linear-gradient(140deg, var(--avatar-1), var(--avatar-2)); box-shadow: 0 4px 12px -6px var(--avatar-2); transition: scale .25s cubic-bezier(.3, 1.5, .5, 1); }
+.avatar:hover { scale: 1.06; }
+
+/* menu a comparsa: «+ Nuovo» e il nome */
+.menu-pop {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 50; min-width: 300px; padding: 6px; display: grid; gap: 2px;
+  background: var(--pieno); color: var(--ink); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 22px 50px -16px rgba(0, 0, 0, .32), 0 2px 6px rgba(0, 0, 0, .06); transform-origin: top right;
+}
+.menu-pop:not([hidden]) { animation: menu-apre .22s cubic-bezier(.2, 1.1, .4, 1); }
+@keyframes menu-apre { from { opacity: 0; transform: translateY(-6px) scale(.96); } }
+.menu-pop a { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 12px; padding: 8px 10px; border-radius: 11px; color: var(--ink); text-decoration: none; }
+.menu-pop a:hover, .menu-pop a:focus-visible { background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); outline: none; }
+.menu-pop a b { display: block; font-weight: 600; font-size: 14px; }
+.menu-pop a small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.3; }
+.mn-icona { width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); border: 1px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); }
+.mn-icona svg { width: 20px; height: 20px; }
+.profilo-pop { min-width: 270px; padding: 14px; gap: 6px; }
+.profilo-pop label { font-size: 13px; font-weight: 600; }
+.profilo-pop input { width: 100%; min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg-pieno); }
+.profilo-pop input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.profilo-pop small { color: var(--muted); font-size: 12px; }
+
+/* ---------- riga bassa: sotto-schede e stato ---------- */
+.schede { position: relative; display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; align-self: stretch; }
+.schede::-webkit-scrollbar { display: none; }
+.scheda { flex: none; display: inline-flex; align-items: center; padding: 0 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; white-space: nowrap; border-radius: 8px 8px 0 0; transition: color .2s, background-color .2s; }
+.scheda:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.scheda[aria-current] { color: var(--ink); }
+.scheda:focus-visible { outline-offset: -2px; }
+.linea-attiva { position: absolute; left: 0; bottom: 0; height: 3px; width: var(--w, 0px); translate: var(--x, 0px) 0; border-radius: 3px 3px 0 0; pointer-events: none;
+  background: hsl(var(--h-attiva, 214) var(--tinta-s) var(--tinta-ink-l)); }
+.schede.pronte .linea-attiva { transition: translate .5s cubic-bezier(.34, 1.2, .5, 1), width .5s cubic-bezier(.34, 1.2, .5, 1); }
+.stato-banco { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.stato-banco time { font-variant-numeric: tabular-nums; }
+.pallino { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 45%, transparent); animation: pallino 2.8s ease-out infinite; }
+@keyframes pallino { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 45%, transparent); } 70%, 100% { box-shadow: 0 0 0 7px transparent; } }
+
+/* ====================== vista ====================== */
+.app { min-width: 0; }
+.vista { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; padding-top: 26px; min-width: 0; }
+
+/* intestazione della pagina: titolo grande come nella dashboard */
+.pagina-testa { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 14px 24px; }
+.pt-testo { display: grid; gap: 6px; min-width: 0; }
+.pt-riga { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.pt-icona { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; flex: none;
+  background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); border: 1px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); }
+.pt-icona svg { width: 20px; height: 20px; }
+.pt-funzione { font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pt-titolo { margin: 2px 0 0; font-size: clamp(28px, 1.6vw + 18px, 42px); line-height: 1.06; font-weight: 700; letter-spacing: -.015em; text-wrap: balance; }
+.pt-desc { margin: 0; max-width: 74ch; color: var(--muted); font-size: 15.5px; text-wrap: pretty; }
+.pt-siti { margin: 4px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; }
+.pt-siti > span { margin-right: 2px; font-size: 11.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.pt-siti a { padding: 3px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 600; transition: border-color .2s, color .2s; }
+.pt-siti a:hover { border-color: var(--accent); color: var(--accent); }
+.pt-azioni { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+/* percorso a tappe (js/percorso.js) */
+.percorso-box { position: relative; padding: 14px 8px 6px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+.pc-svg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.pc-sopra { z-index: 2; }
+.pc-base { fill: none; stroke: color-mix(in srgb, var(--muted) 50%, transparent); stroke-width: 2; stroke-linecap: round; stroke-dasharray: .5 7; }
+.pc-fatto { fill: none; stroke: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); stroke-width: 2.5; stroke-linecap: round; }
+.pc-alone { fill: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); stroke: hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); transform-box: fill-box; transform-origin: center; animation: pc-alone 2.8s ease-in-out infinite; }
+@keyframes pc-alone { 50% { transform: scale(1.14); } }
+.pc-aereo { fill: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); }
+.pc-piega { stroke: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); stroke-width: 1.2; }
+.pc-tappe { position: relative; z-index: 1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.pc-tappe a { display: grid; justify-items: center; gap: 2px; padding: 4px 6px 6px; border-radius: 12px; text-align: center; color: var(--muted); text-decoration: none; transition: color .25s, background-color .25s; }
+.pc-tappe a:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.pc-punto { width: 14px; height: 14px; margin-bottom: 8px; border-radius: 50%; translate: 0 var(--onda, 0px);
+  background: var(--pieno); border: 2px solid color-mix(in srgb, var(--muted) 55%, transparent); transition: background-color .35s, border-color .35s, opacity .2s; }
+.pc-tappe b { font-size: 14px; font-weight: 700; line-height: 1.2; }
+.pc-tappe small { font-size: 12px; line-height: 1.3; min-height: 1.3em; }
+.pc-tappe li.fatto .pc-punto { background: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); border-color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); }
+.pc-tappe li.qui .pc-punto { opacity: 0; }
+.pc-tappe li.qui a, .pc-tappe li.fatto a { color: var(--ink); }
+.pc-tappe li:not(.qui) small { color: var(--muted); }
+
+/* contenuto della sezione */
+.contenuto { container: contenuto / inline-size; min-width: 0; display: grid; gap: 16px; align-content: start; }
+.sez-corpo { min-width: 0; }
+.lat-tit { margin: 0 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* ====================== passaggi tra le viste ======================
+   I nomi valgono solo durante un passaggio (data-verso su <html>, js/app.js): fuori dai passaggi nessun elemento
+   ha un nome, così il vetro sfoca normalmente e il cambio di tema resta un unico cerchio.
+   - titolo e descrizione: salgono e si dissolvono; l'icona della funzione vola dalla scheda della Scrivania
+     all'intestazione (e ritorno);
+   - testata: resta viva (la pillola accesa e la linea delle sotto-schede scorrono) e sta sopra a tutto;
+   - contenuto: quello vecchio esce come immagine (nome solo prima del cambio: data-vt-uscita), quello nuovo
+     entra vero, blocco per blocco (js/app.js), così il vetro continua a sfocare anche mentre arriva. */
+:root[data-verso] .testata { view-transition-name: testata; }
+:root[data-verso] .pt-titolo { view-transition-name: titolo; }
+:root[data-verso] .pt-desc { view-transition-name: desc; }
+:root[data-verso] .vt-ico { view-transition-name: var(--vt); }
+:root[data-verso][data-salto="funzione"] .pagina-testa { view-transition-name: testa; }
+:root[data-vt-uscita] .vista > .contenuto, :root[data-vt-uscita] .sc-corpo { view-transition-name: corpo; }
+:root[data-vt-uscita][data-salto="funzione"] .percorso-box { view-transition-name: percorso; }
+:root[data-verso="avanti"] { --vt-esce: -36px; }
+:root[data-verso="indietro"] { --vt-esce: 36px; }
+
+::view-transition-group(*) { animation-duration: .55s; animation-timing-function: cubic-bezier(.3, .75, .2, 1); }
+::view-transition-old(*):only-child { animation: vt-svanisce .16s ease-in both; }
+::view-transition-new(*):only-child { animation: vt-appare .34s .14s ease-out both; }
+::view-transition-old(testata) { display: none; }
+::view-transition-new(testata) { animation: none; }
+::view-transition-old(corpo):only-child { animation: vt-corpo-esce .18s cubic-bezier(.4, 0, 1, 1) both; }
+/* il percorso è una lastra di vetro: il browser ne porta la sfocatura sul gruppo del passaggio, che quindi deve
+   svanire anche lui (altrimenti resterebbe una banda sfocata fino alla fine del passaggio) */
+::view-transition-group(percorso) { animation: vt-svanisce .16s ease-in both; }
+::view-transition-old(titolo), ::view-transition-new(titolo), ::view-transition-old(desc), ::view-transition-new(desc) { inline-size: auto; block-size: auto; inset: 0 auto auto 0; }
+::view-transition-old(titolo), ::view-transition-old(desc) { animation: vt-sale-esce .2s cubic-bezier(.4, 0, 1, 1) both; }
+::view-transition-new(titolo) { animation: vt-sale-entra .46s .1s cubic-bezier(.2, .8, .2, 1) both; }
+::view-transition-new(desc) { animation: vt-sale-entra .46s .15s cubic-bezier(.2, .8, .2, 1) both; }
+::view-transition-old(testa) { animation: vt-svanisce .16s ease-in both; }
+::view-transition-new(testa) { animation: vt-appare .36s .12s ease-out both; }
+@keyframes vt-corpo-esce { to { opacity: 0; transform: translateX(var(--vt-esce, -36px)); } }
+@keyframes vt-sale-esce { to { opacity: 0; transform: translateY(-10px); } }
+@keyframes vt-sale-entra { from { opacity: 0; transform: translateY(14px); } }
+@keyframes vt-svanisce { to { opacity: 0; } }
+@keyframes vt-appare { from { opacity: 0; } }
+
+/* richiamo sull'elenco «Da fare» quando si arriva dalla campanella */
+.lampeggia { animation: lampeggia 1.4s ease-out; }
+@keyframes lampeggia { 0%, 30% { box-shadow: 0 0 0 3px var(--accent), var(--shadow); } 100% { box-shadow: 0 0 0 14px transparent, var(--shadow); } }
+
+/* ====================== schermi più stretti ====================== */
+@media (max-width: 1360px) { .marchio-nome { display: none; } }
+@media (max-width: 1240px) {
+  /* le pillole scendono su una riga tutta loro */
+  .barra-alta { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "marchio azioni" "pillole pillole"; }
+  .barra-alta .pillole { justify-self: start; }
+  .marchio-nome { display: inline; }
+}
+@media (max-width: 720px) {
+  .pagina-testa { grid-template-columns: minmax(0, 1fr); }
+  .pt-azioni { justify-content: flex-start; }
+  .vista { padding-top: 18px; gap: 16px; }
+  .stato-banco { display: none; }
+  .pc-tappe small { display: none; }
+}
+@media (max-width: 520px) {
+  .marchio-nome { display: none; }
+  .nuovo { display: none; }
+  .testata-azioni { gap: 6px; }
+  .barra-bassa .briciole { display: none; }
+  .schede:not(:empty) { margin-left: 0; padding-left: 0; border-left: 0; }
+  .barra-bassa:has(.schede:empty) { display: none; }
+  .pillola { padding: 0 12px; }
+}

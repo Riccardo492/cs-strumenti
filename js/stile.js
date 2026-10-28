@@ -25,6 +25,7 @@ export function montaInterruttoreStile(btn) {
       aggiorna();
     };
     if (!document.startViewTransition || riduciMovimento()) return applica();
+    delete document.documentElement.dataset.verso;   // nessun nome di passaggio: tutta la pagina si dissolve insieme
     const vt = document.startViewTransition(applica);
     vt.ready.then(() => {
       const o = { duration: 450, easing: 'ease-out' };

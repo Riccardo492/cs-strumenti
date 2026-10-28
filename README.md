@@ -2,16 +2,19 @@
 
 Raccolta di strumenti per la gestione dei concorsi, in un'unica pagina web.
 
-Il menu è circolare: al centro c'è il cerchio principale, intorno le funzioni. Quando ne scegli una, il suo cerchio si sposta in alto a sinistra e sotto si apre a cascata il sottomenu. Ogni sezione può avere un **assistente passo passo** («Guidami passo passo») e dei **siti collegati**.
+La pagina è fatta come una dashboard.
 
-L'interfaccia è animata. Lo sfondo è una mappa topografica che respira:
-- ogni funzione del menu è un rilievo nel suo colore e il puntatore solleva una piccola collina;
-- le curve di livello scendono piano, così dai cerchi sembrano partire anelli;
-- piccole luci scorrono lungo le curve;
-- un clic manda un'onda sulla mappa;
-- aperta una funzione, la mappa prende la sua tinta e il rilievo segue il suo cerchio in alto a sinistra.
+- **In alto** ci sono le funzioni, come pillole: la pillola accesa scorre da una voce all'altra e prende il colore della funzione. Accanto ci sono «+ Nuovo» (apre una funzione), lo stile, il tema, la campanella con le cose da fare e il cerchio con le iniziali (il nome serve solo per il saluto). Sotto ci sono le sezioni della funzione aperta, con una linea che scorre sotto quella scelta.
+- **La Scrivania** è la pagina iniziale:
+  - il saluto e una frase che riassume la situazione;
+  - quattro numeri del mese: ricevute, compensi netti, PDF rinominati, domande preparate. Ognuno ha un piccolo grafico delle ultime settimane;
+  - il grafico degli ultimi 12 mesi, con un selettore che lo trasforma da una misura all'altra;
+  - l'elenco «Da fare» (per esempio le domande da rivedere) e le attività recenti.
+- **I numeri** vengono da quello che si fa in questo browser: ricevute scaricate, PDF rinominati, domande generate o stampate. Restano solo nel browser (`lib/attivita.js`). Gli esempi non contano, e riscaricare lo stesso lotto non lo conta due volte. Finché non c'è niente, la Scrivania mostra dati di esempio e lo dice.
+- **I passaggi tra le viste sono fluidi**, con le View Transitions del browser. Il titolo sale e cambia; l'icona della funzione vola dalla sua scheda della Scrivania all'intestazione della pagina; il contenuto vecchio esce da un lato e il nuovo entra dall'altro, nel verso dello spostamento. Nelle funzioni a tappe (Batterie di domande) un aeroplanino vola lungo il percorso fino alla tappa aperta.
+- Ogni sezione può avere un **assistente passo passo** («Guidami passo passo») e dei **siti collegati**.
 
-Dal cerchio centrale partono impulsi verso le funzioni e, se nessuno tocca il menu per qualche secondo, il centro presenta da solo le funzioni una alla volta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
+Nello stile classico lo sfondo è una mappa topografica animata: le curve di livello scendono piano, piccole luci scorrono lungo le curve, un clic manda un'onda e, aperta una funzione, la mappa prende la sua tinta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
 
 In alto a destra c'è anche lo **stile**: **vetro** (superfici traslucide che sfocano lo sfondo, `css/vetro.css`) oppure **classico**. Nel vetro lo sfondo è statico: colori morbidi e il simbolo C&S grande in basso a destra (`assets/logo-cs-segno.svg`, ricostruito come vettore dal logo). La mappa animata resta nello stile classico. Il vetro sfoca solo le superfici principali, per non pesare sulla scheda video. Se il browser non sa sfocare, o chi usa la pagina ha chiesto meno trasparenze nel sistema, le superfici diventano quasi piene.
 
@@ -37,12 +40,14 @@ assets/                     logo C&S (usato come maschera: prende il colore del 
 css/
   tokens.css                colori, caratteri, misure (tema chiaro e scuro, intensità dello sfondo --campo-*)
   base.css                  bottoni, campi, schede, etichette, tabelle
-  menu.css                  menu circolare, colonna laterale, sottomenu
+  struttura.css             testata con le pillole, intestazione della pagina, percorso a tappe, passaggi tra le viste
+  scrivania.css             la Scrivania
   assistente.css            pannello dell'assistente
   vetro.css                 stile vetro (si attiva con data-stile="vetro" su <html>)
 js/
-  app.js                    avvio e navigazione (#funzione.sezione)
-  menu.js                   disegno del menu e animazioni
+  app.js                    avvio, testata e navigazione (# = Scrivania, #funzione.sezione)
+  scrivania.js              la Scrivania: saluto, numeri del mese, grafici, da fare
+  percorso.js               percorso a tappe con l'aeroplanino
   assistente.js             guida passo passo
   eventi.js                 eventi tra le funzioni e l'assistente
   campo.js                  sfondo animato: mappa topografica con rilievi, onde e luci
@@ -58,8 +63,9 @@ lib/                        utilità condivise da tutte le funzioni
   file.js                   raccolta di file trascinati, anche cartelle e archivi .zip
   risorse.js                caricamento dei modelli che accompagnano le funzioni
   xlsx.js                   scrittura di file Excel (.xlsx)
+  attivita.js               registro delle attività di questo browser (numeri della Scrivania)
 strumenti/
-  elenco.js                 l'elenco delle funzioni nel menu
+  elenco.js                 l'elenco delle funzioni (pillole in alto)
   comune.js                 icone, caricamento CSS, pagina «in costruzione»
   ricevute/                 una cartella per funzione
     index.js                la scheda della funzione
@@ -83,12 +89,13 @@ import { icona, caricaCss } from '../comune.js';
 export default {
   id: 'rinomina-pdf',                 // compare nell'indirizzo: #rinomina-pdf
   nome: 'Rinomina file PDF',
-  descrizione: 'Testo breve mostrato nel cerchio centrale.',
-  tinta: 350,                         // colore del cerchio (tonalità 0–360)
+  etichetta: 'Rinomina PDF',          // nome corto sulla pillola
+  descrizione: 'Testo breve che descrive la funzione.',
+  tinta: 350,                         // colore della funzione (tonalità 0–360)
   stato: 'pronto',                    // oppure 'in costruzione'
   icona: icona('<path d="…"/>'),      // tracciati SVG su griglia 24×24
-  sezioni: [                          // il sottomenu a cascata
-    { id: 'rinomina', nome: 'Rinomina', breve: 'Sotto la voce nel sottomenu', descrizione: 'Sotto il titolo della sezione' },
+  sezioni: [                          // le sotto-schede sotto le pillole
+    { id: 'rinomina', nome: 'Rinomina', breve: 'Riga breve nel menu «+ Nuovo»', descrizione: 'Sotto il titolo della sezione' },
   ],
   siti: [                             // siti esterni collegati (facoltativo)
     { nome: 'Nome del sito', url: 'https://…', descrizione: 'A cosa serve' },
@@ -105,12 +112,17 @@ export default {
     // ctx.emetti('file-caricati')   → l'assistente va avanti da solo
     // ctx.salva(nomeFile, blob)     → offre il file da scaricare
     // ctx.avviso('Testo')           → messaggio breve a schermo
+    // ctx.registra({ azione: 'rinominati', n: 12 })  → conta per i numeri della Scrivania
     return () => { /* facoltativo: pulizia quando si cambia sezione */ };
   },
+  // facoltativi:
+  // precarica() { … }               → carica vista e stile in anticipo, quando il browser è libero
+  // async percorso() { … }          → { idSezione: { fatto, nota } }: mostra il percorso a tappe sopra la funzione
+  // async promemoria() { … }        → [{ testo, dettaglio, href, livello: 'alto'|'medio'|'ok', n }]: «Da fare» e numerini
 };
 ```
 
-2. Aggiungila a `strumenti/elenco.js`. Il menu circolare si ridispone da solo in base al numero di funzioni.
+2. Aggiungila a `strumenti/elenco.js`: compare da sola tra le pillole e nel menu «+ Nuovo».
 
 ### Ogni funzione è isolata dalle altre
 
@@ -119,7 +131,7 @@ Così si può lavorare su una funzione senza rischiare le altre:
 - **Codice:** ogni funzione vive nella sua cartella `strumenti/<nome>/` e non importa niente dalle altre funzioni, solo da `lib/` e `strumenti/comune.js`.
 - **Stili:** gli stili di una funzione hanno un prefisso tutto suo (`ric-`, `rp-`…) e si caricano solo quando la funzione si apre.
 - **Caricamento:** `index.js` contiene solo la scheda (nome, sezioni, guida); il resto si carica con `import()` dentro `monta`. Se una funzione ha un errore:
-  - nel caricamento della scheda, il menu la nasconde e mostra le altre;
+  - nel caricamento della scheda, la sua pillola non compare e le altre funzionano;
   - nella sua sezione, solo quella sezione mostra un messaggio di errore.
 - **Parti in comune:** `lib/`, `strumenti/comune.js`, `css/` e `js/` sono usate da tutte le funzioni. Quando si cambiano vanno provate tutte.
 - **Pubblicazione:** il sito pubblica solo il ramo `main`. Una funzione nuova si sviluppa su un ramo a parte (per esempio `abbinamento`) e si unisce a `main` quando è pronta: fino ad allora i colleghi non vedono niente.

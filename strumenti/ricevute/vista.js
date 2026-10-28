@@ -1,6 +1,7 @@
 // Ricevute: interfaccia delle tre sezioni (Genera, Modello Excel, Come si calcola).
 import { escHtml, fmtNum, fmtEuro, isEmpty, isoToIt, colLetter, oggiIt, parseMoney } from '../../lib/formati.js';
 import { leggiFoglio, trovaIntestazione, abbinaColonne, intestazioni } from '../../lib/excel.js';
+import { impronta } from '../../lib/attivita.js';
 import { CAMPI, COLONNE_MODELLO, RIGHE_ESEMPIO, costruisciRicevute, daNetto, daLordo, SOGLIA_BOLLO } from './dati.js';
 import { creaDocx, creaZip, creaUnico } from './word.js';
 import { caricaRisorsa } from '../../lib/risorse.js';
@@ -236,7 +237,7 @@ export function montaGenera(el, ctx) {
         </div><span class="ric-pgnum">pagina 2</span></div>
       </div>`;
     const b = $('#ric-una');
-    if (b) b.onclick = () => esegui(b, async () => { if (await ctx.salva(r.file, await creaDocx(r))) ctx.emetti('scaricato', { quante: 1 }); });
+    if (b) b.onclick = () => esegui(b, async () => { if (await ctx.salva(r.file, await creaDocx(r))) { ctx.emetti('scaricato', { quante: 1 }); registraLotto([r]); } });
   }
 
   async function esegui(btn, fn) {
@@ -301,13 +302,15 @@ export function montaGenera(el, ctx) {
     }
   });
   const pronte = () => S.ricevute.filter(r => !r.errori.length);
+  /** Le ricevute scaricate finiscono nei numeri della Scrivania (non quelle di esempio; lo stesso lotto conta una volta). */
+  const registraLotto = ok => { if (S.origine !== 'esempio' && ok.length) ctx.registra?.({ azione: 'generate', n: ok.length, importo: ok.reduce((t, r) => t + r.netto, 0), chiave: impronta(ok.map(r => r.file + r.netto).join('|')) }); };
   $('#ric-zip').addEventListener('click', e => esegui(e.currentTarget, async () => {
     const ok = pronte();
-    if (await ctx.salva(`Ricevute prestazione occasionale - ${oggiIt()}.zip`, await creaZip(ok))) ctx.emetti('scaricato', { quante: ok.length });
+    if (await ctx.salva(`Ricevute prestazione occasionale - ${oggiIt()}.zip`, await creaZip(ok))) { ctx.emetti('scaricato', { quante: ok.length }); registraLotto(ok); }
   }));
   $('#ric-unico').addEventListener('click', e => esegui(e.currentTarget, async () => {
     const ok = pronte();
-    if (await ctx.salva(`Ricevute prestazione occasionale - tutte - ${oggiIt()}.docx`, await creaUnico(ok))) ctx.emetti('scaricato', { quante: ok.length });
+    if (await ctx.salva(`Ricevute prestazione occasionale - tutte - ${oggiIt()}.docx`, await creaUnico(ok))) { ctx.emetti('scaricato', { quante: ok.length }); registraLotto(ok); }
   }));
 
   S.animaRighe = true; S.prec = {};   // a ogni apertura le righe compaiono e i totali scorrono da zero

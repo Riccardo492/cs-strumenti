@@ -5,6 +5,7 @@ import { escHtml, norm, clean, oggiIt, safeName, isEmpty } from '../../lib/forma
 import { leggiFoglio, trovaIntestazione, intestazioni } from '../../lib/excel.js';
 import { creaXlsx } from '../../lib/xlsx.js';
 import { emetti } from '../../js/eventi.js';
+import { registra as registraAttivita, impronta } from '../../lib/attivita.js';
 import { comparsa } from '../../js/vivo.js';
 import {
   S, salva, ricomincia, tornaEsempio, diventaMia, DIFFICOLTA, LIVELLI, LETTERE, nomeDifficolta, ripartisci,
@@ -165,7 +166,10 @@ async function generaMancanti() {
     const s = spiegaErrore(e);
     if (s.passaACopia) { modo = 'copia'; copiaAperta.genera = true; }
     esito = { tipo: s.annullato ? 'info' : 'err', testo: (lavoro.fatte ? `Generate ${lavoro.fatte} domande. ` : '') + (s.annullato ? 'Generazione fermata: riprendi quando vuoi.' : s.messaggio) };
-  } finally { lavoro = null; esiti.genera = esito; avvisa(); }
+  } finally {
+    if (lavoro?.fatte) registraAttivita(ID, { azione: 'generate', n: lavoro.fatte });   // per i numeri della Scrivania
+    lavoro = null; esiti.genera = esito; avvisa();
+  }
 }
 
 function gruppiControllo(qs) {
@@ -494,7 +498,7 @@ function montaGenera(radice, ctx) {
         collegaCopia(box.firstElementChild, richiesta, dati => {
           const { buone, scartate } = normalizzaDomande(dati, { materie: S.materie, nRisposte: S.nRisposte });
           if (!buone.length) { esiti.copia = { tipo: 'err', testo: 'Nella risposta non ci sono domande valide.' + (scartate.length ? ` Scartate ${scartate.length}: ${scartate[0].motivo}.` : '') }; avvisa(); return; }
-          diventaMia(); aggiungiDomande(buone, 'incollata');
+          diventaMia(); aggiungiDomande(buone, 'incollata'); registraAttivita(ID, { azione: 'generate', n: buone.length });
           esiti.copia = { tipo: 'ok', testo: `Aggiunte ${buone.length} domande.` + (scartate.length ? ` ${scartate.length} scartate (${[...new Set(scartate.map(s => s.motivo))].join(', ')}).` : '') + ' Ora passa al secondo controllo.' };
           firmaCopia = ''; cambiato(); emetti(`${ID}:domande-generate`);
         });
@@ -817,8 +821,8 @@ function montaEsporta(radice, ctx) {
       voci.push({ nome: `${titoloFile()} - Versione ${v.lettera}.docx`, blob: await creaDocx(opzWord(v, false)) });
       if (S.stampa.soluzioni) voci.push({ nome: `${titoloFile()} - Versione ${v.lettera} - Commissione.docx`, blob: await creaDocx(opzWord(v, true)) });
     }
-    if (voci.length === 1) await ctx.salva(voci[0].nome, voci[0].blob);
-    else await ctx.salva(`${titoloFile()} - Batterie - ${oggiIt()}.zip`, await creaZip(voci));
+    const ok = voci.length === 1 ? await ctx.salva(voci[0].nome, voci[0].blob) : await ctx.salva(`${titoloFile()} - Batterie - ${oggiIt()}.zip`, await creaZip(voci));
+    if (ok && !S.esempio) registraAttivita(ID, { azione: 'stampate', n: vs[0].domande.length * vs.length, chiave: impronta([S.titolo, S.versioni.seme, vs.length, vs[0].domande.length].join('|')) });
     emetti(`${ID}:scaricato`);
   });
   $('#bt-xlsx').addEventListener('click', async () => {

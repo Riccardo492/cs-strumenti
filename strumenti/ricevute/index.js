@@ -5,6 +5,7 @@ import { icona, caricaCss } from '../comune.js';
 export default {
   id: 'ricevute',
   nome: 'Ricevute di pagamento',
+  etichetta: 'Ricevute',  // nome breve, nella barra in alto
   descrizione: "Dall'Excel dei collaboratori alle ricevute Word, con la ritenuta del 20% già calcolata.",
   tinta: 214,
   stato: 'pronto',
@@ -45,6 +46,8 @@ export default {
         testo: '<p>Scrivi un importo e scegli se è il netto da pagare o il lordo concordato: vedi subito ritenuta e netto, come compariranno sulla ricevuta.</p>' },
     ],
   },
+  /** Carica in anticipo stile e vista, quando il browser è libero: così aprire la funzione è immediato. */
+  precarica() { return Promise.all([caricaCss(new URL('./ricevute.css', import.meta.url)), import('./vista.js')]); },
   async monta(el, ctx) {
     await caricaCss(new URL('./ricevute.css', import.meta.url));
     const { montaGenera, montaModello, montaCalcoli } = await import('./vista.js');   // caricata solo quando serve

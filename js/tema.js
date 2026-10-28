@@ -48,6 +48,7 @@ export function montaInterruttoreTema(el, { cambiato } = {}) {
     const r = b.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
     const cambia = () => { applica(scelta); aggiorna(); };
     if (prima === dopo || riduciMovimento() || !document.startViewTransition) { cambia(); if (prima !== dopo) cambiato?.({ x, y, tema: dopo }); return; }
+    delete document.documentElement.dataset.verso;   // nessun nome di passaggio: tutta la pagina passa nel cerchio
     const vt = document.startViewTransition(cambia);
     vt.ready.then(() => {
       const raggio = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));

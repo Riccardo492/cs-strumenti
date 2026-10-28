@@ -2,7 +2,7 @@
    Si attiva con data-stile="vetro" su <html> (interruttore in testata, js/stile.js); senza, resta lo stile classico.
 
    Regole per non appesantire la scheda video:
-   - solo le superfici principali (testata, schede, pannelli, cerchi del menu) sfocano ciò che hanno dietro;
+   - solo le superfici principali (testata, schede, pannelli) sfocano ciò che hanno dietro;
    - quello che sta dentro una superficie è semi-trasparente ma non sfoca (dietro c'è già il vetro);
    - gli elenchi lunghi stanno su un'unica lastra di vetro, non una per riga.
 
@@ -11,61 +11,59 @@
 
 /* ---------- colori ----------
    Vetro leggero: superfici al 30% circa, sfocatura forte (è lei a tenere leggibile il testo),
-   bordi sottili, ombre basse e larghe, niente riflessi lucidi. Le linee della mappa dietro sono più tenui. */
+   bordi sottili, ombre basse e larghe, niente riflessi lucidi.
+   Sotto il vetro: un fondo verde-petrolio con un bagliore caldo color ambra e il simbolo C&S. */
 :root[data-stile="vetro"] {
-  --fondo: #e8edf4;
-  --surface: rgba(255, 255, 255, .3);
-  --bg: rgba(255, 255, 255, .34);
-  --line: rgba(31, 41, 52, .1);
-  --desk: rgba(31, 41, 52, .05);
-  --accent-soft: rgba(43, 89, 163, .11);
-  --shadow: 0 8px 28px -14px rgba(31, 41, 52, .25);
+  --fondo: #e8eeed;
+  --surface: rgba(255, 255, 255, .32);
+  --bg: rgba(255, 255, 255, .36);
+  --line: rgba(23, 35, 38, .1);
+  --desk: rgba(23, 35, 38, .05);
+  --accent-soft: rgba(23, 112, 106, .12);
+  --shadow: 0 8px 28px -14px rgba(23, 35, 38, .25);
   --vetro-bordo: rgba(255, 255, 255, .62);
   --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .55);
   --vetro-pieno: rgba(255, 255, 255, .5);
   --vetro-btn: rgba(255, 255, 255, .42);
-  --vetro-btn-bordo: rgba(31, 41, 52, .14);
-  --vetro-solido: rgba(248, 250, 252, .94);
-  --sfoca: blur(26px) saturate(180%);
-  --bolla: 85% 72% / .2;                 /* cerchi delle funzioni: hsl(var(--h) var(--bolla)) */
-  --bolla-bordo: 70% 70% / .45;
+  --vetro-btn-bordo: rgba(23, 35, 38, .14);
+  --vetro-solido: rgba(249, 251, 250, .95);
+  --pieno: var(--vetro-solido); --bg-pieno: var(--fondo);
+  --sfoca: blur(26px) saturate(170%);
   --raggio: 18px;
-  --aurora-1: hsl(214 85% 78% / .6); --aurora-2: hsl(278 70% 84% / .5); --aurora-3: hsl(168 60% 78% / .45);
-  --aurora-4: hsl(350 80% 86% / .45); --aurora-5: hsl(28 90% 84% / .35);
-  --aurora-l: 80%; --aurora-a: .4;
+  --aurora-1: hsl(172 55% 74% / .6); --aurora-2: hsl(36 95% 78% / .55); --aurora-3: hsl(205 75% 82% / .5);
+  --aurora-4: hsl(160 45% 82% / .45); --aurora-5: hsl(18 90% 86% / .35);
+  --aurora-l: 80%; --aurora-a: .38;
   --campo-linea: .1; --campo-maestra: .17; --campo-rilievo: .14; --campo-viandante: .3;
   --campo-attivo: 0;                     /* sfondo statico: la mappa animata si spegne (js/campo.js) */
-  --logo-1: hsl(214 80% 52%); --logo-2: hsl(var(--h-attiva, 262) 62% 60%); --logo-a: .16;
+  --logo-1: hsl(205 80% 48%); --logo-2: hsl(var(--h-attiva, 172) 58% 44%); --logo-a: .15;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-stile="vetro"]:not([data-theme="light"]) {
-    --fondo: #10131a; --surface: rgba(30, 36, 48, .3); --bg: rgba(8, 11, 16, .2); --line: rgba(255, 255, 255, .08);
-    --desk: rgba(0, 0, 0, .18); --accent-soft: rgba(142, 174, 226, .14);
+    --fondo: #0b1418; --surface: rgba(24, 42, 49, .34); --bg: rgba(6, 14, 17, .24); --line: rgba(255, 255, 255, .08);
+    --desk: rgba(0, 0, 0, .18); --accent-soft: rgba(92, 197, 181, .14);
     --shadow: 0 10px 30px -14px rgba(0, 0, 0, .6);
     --vetro-bordo: rgba(255, 255, 255, .1); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .06);
-    --vetro-pieno: rgba(30, 35, 45, .48); --vetro-btn: rgba(255, 255, 255, .05); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
-    --sfoca: blur(28px) saturate(150%);
-    --bolla: 55% 50% / .2; --bolla-bordo: 50% 64% / .4;
-    --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
-    --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
-    --aurora-l: 30%; --aurora-a: .45;
+    --vetro-pieno: rgba(22, 38, 44, .5); --vetro-btn: rgba(255, 255, 255, .05); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(18, 33, 39, .96);
+    --sfoca: blur(28px) saturate(140%);
+    --aurora-1: hsl(178 55% 20% / .7); --aurora-2: hsl(32 85% 36% / .4); --aurora-3: hsl(205 60% 22% / .55);
+    --aurora-4: hsl(165 45% 16% / .5); --aurora-5: hsl(22 75% 30% / .28);
+    --aurora-l: 28%; --aurora-a: .42;
     --campo-linea: .07; --campo-maestra: .12; --campo-rilievo: .14; --campo-viandante: .28;
-    --logo-1: hsl(214 70% 64%); --logo-2: hsl(var(--h-attiva, 270) 55% 68%); --logo-a: .12;
+    --logo-1: hsl(205 70% 60%); --logo-2: hsl(var(--h-attiva, 172) 50% 58%); --logo-a: .11;
   }
 }
 :root[data-stile="vetro"][data-theme="dark"] {
-    --fondo: #10131a; --surface: rgba(30, 36, 48, .3); --bg: rgba(8, 11, 16, .2); --line: rgba(255, 255, 255, .08);
-    --desk: rgba(0, 0, 0, .18); --accent-soft: rgba(142, 174, 226, .14);
+    --fondo: #0b1418; --surface: rgba(24, 42, 49, .34); --bg: rgba(6, 14, 17, .24); --line: rgba(255, 255, 255, .08);
+    --desk: rgba(0, 0, 0, .18); --accent-soft: rgba(92, 197, 181, .14);
     --shadow: 0 10px 30px -14px rgba(0, 0, 0, .6);
     --vetro-bordo: rgba(255, 255, 255, .1); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .06);
-    --vetro-pieno: rgba(30, 35, 45, .48); --vetro-btn: rgba(255, 255, 255, .05); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
-    --sfoca: blur(28px) saturate(150%);
-    --bolla: 55% 50% / .2; --bolla-bordo: 50% 64% / .4;
-    --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
-    --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
-    --aurora-l: 30%; --aurora-a: .45;
+    --vetro-pieno: rgba(22, 38, 44, .5); --vetro-btn: rgba(255, 255, 255, .05); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(18, 33, 39, .96);
+    --sfoca: blur(28px) saturate(140%);
+    --aurora-1: hsl(178 55% 20% / .7); --aurora-2: hsl(32 85% 36% / .4); --aurora-3: hsl(205 60% 22% / .55);
+    --aurora-4: hsl(165 45% 16% / .5); --aurora-5: hsl(22 75% 30% / .28);
+    --aurora-l: 28%; --aurora-a: .42;
     --campo-linea: .07; --campo-maestra: .12; --campo-rilievo: .14; --campo-viandante: .28;
-    --logo-1: hsl(214 70% 64%); --logo-2: hsl(var(--h-attiva, 270) 55% 68%); --logo-a: .12;
+    --logo-1: hsl(205 70% 60%); --logo-2: hsl(var(--h-attiva, 172) 50% 58%); --logo-a: .11;
 }
 
 /* ---------- sfondo: aurora di colori sotto la mappa ---------- */
@@ -74,7 +72,7 @@
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
     radial-gradient(55vmax 45vmax at 6% 2%, var(--aurora-1), transparent 62%),
-    radial-gradient(45vmax 40vmax at 98% 10%, var(--aurora-2), transparent 62%),
+    radial-gradient(42vmax 38vmax at 100% 0%, var(--aurora-2), transparent 64%),
     radial-gradient(50vmax 45vmax at 80% 100%, var(--aurora-3), transparent 62%),
     radial-gradient(40vmax 36vmax at 2% 94%, var(--aurora-4), transparent 62%),
     radial-gradient(38vmax 32vmax at 48% 52%, hsl(var(--h-attiva, 28) 80% var(--aurora-l) / var(--aurora-a)), transparent 66%);
@@ -94,14 +92,17 @@
 @media (max-width: 640px) { :root[data-stile="vetro"] .sfondo-logo { width: 120vw; right: -30vw; bottom: -8vh; } }
 
 /* ---------- lastre di vetro ---------- */
-:where(:root[data-stile="vetro"]) :where(.card, .barra, .assistente, .laterale, .testata, .mozzo, .nodo-cerchio, .ancora, .volante, .tema, .stile-btn, .menu-nota, .nodo-nome, .nodo-stato) {
+:where(:root[data-stile="vetro"]) :where(.card, .barra, .assistente, .testata, .percorso-box, .sc-scheda, .sc-pannello) {
   -webkit-backdrop-filter: var(--sfoca); backdrop-filter: var(--sfoca);
 }
-:where(:root[data-stile="vetro"]) :is(.card, .barra, .assistente) {
+:where(:root[data-stile="vetro"]) :is(.card, .barra, .assistente, .percorso-box, .sc-scheda, .sc-pannello) {
   background-color: var(--surface); border-color: var(--vetro-bordo); border-radius: var(--raggio);
   box-shadow: var(--shadow), var(--vetro-luce);
 }
 :where(:root[data-stile="vetro"]) .card:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--vetro-bordo)); }
+:where(:root[data-stile="vetro"]) .sc-scheda:hover { border-color: hsl(var(--h) 60% 60% / .5); box-shadow: var(--shadow), var(--vetro-luce), 0 16px 34px -22px hsl(var(--h) 60% 35% / .8); }
+:where(:root[data-stile="vetro"]) .sc-scheda { border-radius: 18px; }
+:where(:root[data-stile="vetro"]) .sc-pannello { border-radius: 22px; }
 
 /* superfici delle funzioni che stanno direttamente sullo sfondo */
 :root[data-stile="vetro"] :is(details.ric-mappa, .ric-elenco, .rpdf-elenco, .ric-scrivania, .bt-lista, .bt-esempio, .ic-cantiere) {
@@ -121,10 +122,12 @@
 
 /* ---------- testata: barra di vetro che resta in alto ---------- */
 :where(:root[data-stile="vetro"]) .testata {
-  margin-top: 10px; padding: 8px 10px 8px 14px; min-height: 58px; border-radius: 20px;
+  margin-top: 10px; padding: 8px 10px 0 14px; border-radius: 22px;
   background: var(--surface); border: 1px solid var(--vetro-bordo); box-shadow: var(--shadow), var(--vetro-luce);
 }
-@media (min-width: 641px) {
+:where(:root[data-stile="vetro"]) .barra-bassa { margin-top: 8px; border-top-color: var(--line); }
+:where(:root[data-stile="vetro"]) .barra-bassa:has(.schede:empty) { min-height: 38px; }
+@media (min-width: 721px) {
   :where(:root[data-stile="vetro"]) .testata { position: sticky; top: 10px; z-index: 25; }
   /* sopra la testata il contenuto che scorre si sfoca e svanisce, invece di restare a vista nel margine */
   :root[data-stile="vetro"] body::after {
@@ -132,12 +135,15 @@
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     -webkit-mask-image: linear-gradient(#000 35%, transparent); mask-image: linear-gradient(#000 35%, transparent);
   }
-  :where(:root[data-stile="vetro"]) .laterale { top: 88px; }
-  :where(:root[data-stile="vetro"]) .guida-punto { scroll-margin-top: 96px; }
+  :where(:root[data-stile="vetro"]) :is(.guida-punto, .sc-dafare) { scroll-margin-top: 140px; }
 }
 :where(:root[data-stile="vetro"]) .pagina { padding-top: 0; }
+/* dentro la testata (che sfoca già) le superfici sono solo velate */
+:where(:root[data-stile="vetro"]) .pillole { background: var(--bg); border-color: var(--line); }
 :where(:root[data-stile="vetro"]) .tema { background: var(--bg); border-color: var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
 :where(:root[data-stile="vetro"]) .tema-cursore { background: var(--vetro-solido); border-color: var(--vetro-bordo); }
+:where(:root[data-stile="vetro"]) .campanella { background: var(--bg); }
+:where(:root[data-stile="vetro"]) .menu-pop { border-color: var(--vetro-bordo); border-radius: 18px; }
 
 /* ---------- comandi ---------- */
 :where(:root[data-stile="vetro"]) .btn { background: var(--vetro-btn); border-color: var(--vetro-btn-bordo); box-shadow: var(--vetro-luce); border-radius: 12px; }
@@ -155,28 +161,11 @@
 :where(:root[data-stile="vetro"][data-theme="dark"]) .avviso { background: rgba(226, 231, 238, .88); color: #12161c; }
 @media (prefers-color-scheme: dark) { :where(:root[data-stile="vetro"]:not([data-theme="light"])) .avviso { background: rgba(226, 231, 238, .88); color: #12161c; } }
 
-/* ---------- menu circolare ---------- */
-:where(:root[data-stile="vetro"]) .mozzo { background: var(--surface); border-color: var(--vetro-bordo); box-shadow: var(--shadow), var(--vetro-luce); }
-:where(:root[data-stile="vetro"]) :is(.nodo-cerchio, .ancora, .volante) {
-  background: hsl(var(--h) var(--bolla));
-  border-color: hsl(var(--h) var(--bolla-bordo));
-  box-shadow: var(--shadow), var(--vetro-luce);
-}
-:where(:root[data-stile="vetro"]) :is(.nodo:hover, .nodo.in-luce) .nodo-cerchio { box-shadow: var(--shadow), var(--vetro-luce), 0 0 0 6px hsl(var(--h) var(--bolla)); }
-:where(:root[data-stile="vetro"]) .mozzo-icona.di-funzione { background: hsl(var(--h) var(--bolla)); border-color: hsl(var(--h) var(--bolla-bordo)); }
-:where(:root[data-stile="vetro"]) :is(.nodo-nome, .nodo-stato, .menu-nota) { background: var(--surface); box-shadow: var(--vetro-luce); border: 1px solid var(--vetro-bordo); border-radius: 999px; }
-:where(:root[data-stile="vetro"]) .nodo-nome { padding: 2px 10px; }
-:where(:root[data-stile="vetro"]) .menu-nota { padding: 6px 16px; border-radius: 16px; }
-
-/* ---------- colonna laterale: un pannello di vetro ---------- */
-:where(:root[data-stile="vetro"]) .laterale {
-  padding: 16px 14px 18px; background: var(--surface); border: 1px solid var(--vetro-bordo); border-radius: 22px; box-shadow: var(--shadow), var(--vetro-luce);
-}
-:where(:root[data-stile="vetro"]) .sottomenu a { border-radius: 10px; }
-:where(:root[data-stile="vetro"]) .sottomenu a:hover { background: var(--bg); }
-:where(:root[data-stile="vetro"]) .sottomenu a[aria-current] { background: hsl(var(--h) var(--bolla)); }
-:where(:root[data-stile="vetro"]) .siti a { background: var(--bg); border-color: var(--line); border-radius: 12px; }
-@media (max-width: 860px) { :where(:root[data-stile="vetro"]) .laterale { padding: 14px; } }
+/* ---------- intestazione della pagina e Scrivania ---------- */
+:where(:root[data-stile="vetro"]) :is(.pt-icona, .sc-icona, .mn-icona) { background: hsl(var(--h) 70% 70% / .2); border-color: hsl(var(--h) 60% 60% / .35); }
+:where(:root[data-stile="vetro"]) .pt-siti a { background: var(--vetro-btn); border-color: var(--vetro-btn-bordo); }
+:where(:root[data-stile="vetro"]) .sc-segmenti { background: var(--bg); border-color: var(--line); }
+:where(:root[data-stile="vetro"]) .pc-alone { fill: hsl(var(--h) 70% 70% / .22); stroke: hsl(var(--h) 60% 60% / .4); }
 
 /* ---------- se il browser non sfoca, o chi usa la pagina chiede meno trasparenze ---------- */
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {

@@ -309,7 +309,7 @@ export function creaCampo(canvas, { tinte }) {
   }
 
   /* ---------- radure: dietro i testi principali le curve si diradano, così si legge meglio ---------- */
-  const RADURE = '.menu-nota, .lat-nome, .laterale .sottomenu, .laterale .siti, .laterale .lat-azioni, .sez-testa';
+  const RADURE = '.pagina-testa .pt-testo, .percorso-box, .sc-esempio';
   function radure() {
     const els = document.querySelectorAll(RADURE);
     if (!els.length) return;

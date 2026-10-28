@@ -14,7 +14,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Titillium+Web:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/menu.css">
+<link rel="stylesheet" href="css/struttura.css">
+<link rel="stylesheet" href="css/scrivania.css">
 <link rel="stylesheet" href="css/assistente.css">
 <link rel="stylesheet" href="css/vetro.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
@@ -25,24 +26,42 @@
 <div class="sfondo-logo" aria-hidden="true"></div>
 <div class="pagina">
   <header class="testata">
-    <a class="marchio" href="#" aria-label="CS Strumenti, torna al menu">
-      <span class="marchio-segno logo-cs" aria-hidden="true"></span>
-      <span class="marchio-nome">CS Strumenti</span>
-    </a>
-    <nav class="briciole" id="briciole" aria-label="Percorso"></nav>
+    <div class="barra-alta">
+      <a class="marchio" href="#" aria-label="CS Strumenti, vai alla scrivania">
+        <span class="marchio-segno logo-cs" aria-hidden="true"></span>
+        <span class="marchio-nome">CS Strumenti</span>
+      </a>
+      <nav class="pillole" id="pillole" aria-label="Funzioni"></nav>
       <div class="testata-azioni">
+        <div class="nuovo">
+          <button class="btn primary piccolo" id="nuovo" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Nuovo: apri una funzione" title="Apri una funzione"><span aria-hidden="true">+</span><span class="nuovo-testo" aria-hidden="true">Nuovo</span></button>
+          <div class="menu-pop" id="menu-nuovo" role="menu" hidden></div>
+        </div>
         <button class="stile-btn" id="stile" type="button" aria-label="Stile vetro"></button>
         <div class="tema" id="tema" role="group" aria-label="Tema dei colori"></div>
+        <a class="campanella" id="campanella" href="#" title="Da fare" aria-label="Da fare">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.6 5.3 1.6 5.3H3.4S5 12.5 5 8.5zM8.2 16.6a2 2 0 0 0 3.6 0"/></svg>
+          <span class="bollino" id="bollino" hidden></span>
+        </a>
+        <div class="profilo">
+          <button class="avatar" id="avatar" type="button" aria-haspopup="dialog" aria-expanded="false" title="Il tuo nome">?</button>
+          <div class="menu-pop profilo-pop" id="profilo-pop" hidden>
+            <label for="profilo-nome">Come ti chiami?</label>
+            <input id="profilo-nome" autocomplete="given-name" placeholder="es. Riccardo" maxlength="40">
+            <small>Serve solo per salutarti: resta in questo browser.</small>
+          </div>
+        </div>
       </div>
+    </div>
+    <div class="barra-bassa">
+      <nav class="briciole" id="briciole" aria-label="Percorso"></nav>
+      <nav class="schede" id="schede" aria-label="Sezioni"></nav>
+      <span class="stato-banco" title="I file e i dati non vengono inviati a nessun server"><span class="pallino" aria-hidden="true"></span><span class="dove">Tutto resta in questo browser ·</span><time id="ora"></time></span>
+    </div>
   </header>
 
-  <main id="app">
-    <section id="vista-menu" class="vista-menu" aria-label="Menu delle funzioni"></section>
-
-    <section id="vista-strumento" class="vista-strumento" hidden>
-      <aside class="laterale" id="laterale" aria-label="Sottomenu"></aside>
-      <div class="contenuto" id="contenuto"></div>
-    </section>
+  <main id="app" class="app">
+    <div id="vista" class="vista"></div>
   </main>
 </div>
 

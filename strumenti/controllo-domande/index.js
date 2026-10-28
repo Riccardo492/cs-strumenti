@@ -3,6 +3,7 @@ import { icona, montaInCostruzione } from '../comune.js';
 export default {
   id: 'controllo-domande',
   nome: 'Controllo domande di concorso',
+  etichetta: 'Controllo domande',  // nome breve, nella barra in alto
   descrizione: 'Verifica le domande di partecipazione: dati mancanti, requisiti, documenti, doppioni.',
   tinta: 28,
   stato: 'in costruzione',
