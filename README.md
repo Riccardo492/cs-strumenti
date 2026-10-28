@@ -13,7 +13,7 @@ L'interfaccia è animata. Lo sfondo è una mappa topografica che respira:
 
 Dal cerchio centrale partono impulsi verso le funzioni e, se nessuno tocca il menu per qualche secondo, il centro presenta da solo le funzioni una alla volta. Chi ha attivato nel sistema «riduci movimento» vede tutto fermo.
 
-In alto a destra c'è anche lo **stile**: **vetro** (superfici traslucide che sfocano lo sfondo colorato, `css/vetro.css`) oppure **classico**. Il vetro sfoca solo le superfici principali, per non pesare sulla scheda video. Se il browser non sa sfocare, o chi usa la pagina ha chiesto meno trasparenze nel sistema, le superfici diventano quasi piene.
+In alto a destra c'è anche lo **stile**: **vetro** (superfici traslucide che sfocano lo sfondo, `css/vetro.css`) oppure **classico**. Nel vetro lo sfondo è statico: colori morbidi e il simbolo C&S grande in basso a destra (`assets/logo-cs-segno.svg`, ricostruito come vettore dal logo). La mappa animata resta nello stile classico. Il vetro sfoca solo le superfici principali, per non pesare sulla scheda video. Se il browser non sa sfocare, o chi usa la pagina ha chiesto meno trasparenze nel sistema, le superfici diventano quasi piene.
 
 In alto a destra si sceglie il tema: **chiaro**, **automatico** (come il sistema) o **scuro**. Ogni browser ricorda la scelta. I colori sono pensati per non stancare la vista: niente bianco pieno nel tema chiaro, niente nero pieno nel tema scuro, contrasti sempre leggibili, anteprime dei documenti attenuate al buio.
 
@@ -33,7 +33,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 
 ```
 index.html                  la pagina
-assets/                     logo C&S (usato come maschera: prende il colore del tema) e icona della scheda
+assets/                     logo C&S (usato come maschera: prende il colore del tema), simbolo vettoriale per lo sfondo, icona della scheda
 css/
   tokens.css                colori, caratteri, misure (tema chiaro e scuro, intensità dello sfondo --campo-*)
   base.css                  bottoni, campi, schede, etichette, tabelle
