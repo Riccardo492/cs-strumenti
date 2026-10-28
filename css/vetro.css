@@ -9,57 +9,59 @@
    Specificità: le regole che devono solo cambiare l'aspetto usano :where(), così hover, stati e regole
    delle funzioni continuano a valere; quelle che devono vincere sulle regole delle funzioni usano V = :root[data-stile]. */
 
-/* ---------- colori ---------- */
+/* ---------- colori ----------
+   Vetro leggero: superfici al 30% circa, sfocatura forte (è lei a tenere leggibile il testo),
+   bordi sottili, ombre basse e larghe, niente riflessi lucidi. Le linee della mappa dietro sono più tenui. */
 :root[data-stile="vetro"] {
-  --fondo: #e5eaf2;
-  --surface: rgba(255, 255, 255, .56);
-  --bg: rgba(255, 255, 255, .5);
-  --line: rgba(31, 41, 52, .13);
-  --desk: rgba(31, 41, 52, .07);
-  --accent-soft: rgba(43, 89, 163, .13);
-  --shadow: 0 10px 30px -8px rgba(31, 41, 52, .16), 0 2px 6px rgba(31, 41, 52, .05);
-  --vetro-bordo: rgba(255, 255, 255, .72);
-  --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .85);
-  --vetro-pieno: rgba(255, 255, 255, .8);
-  --vetro-btn: rgba(255, 255, 255, .62);
-  --vetro-btn-bordo: rgba(31, 41, 52, .15);
+  --fondo: #e8edf4;
+  --surface: rgba(255, 255, 255, .3);
+  --bg: rgba(255, 255, 255, .34);
+  --line: rgba(31, 41, 52, .1);
+  --desk: rgba(31, 41, 52, .05);
+  --accent-soft: rgba(43, 89, 163, .11);
+  --shadow: 0 8px 28px -14px rgba(31, 41, 52, .25);
+  --vetro-bordo: rgba(255, 255, 255, .62);
+  --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .55);
+  --vetro-pieno: rgba(255, 255, 255, .5);
+  --vetro-btn: rgba(255, 255, 255, .42);
+  --vetro-btn-bordo: rgba(31, 41, 52, .14);
   --vetro-solido: rgba(248, 250, 252, .94);
-  --sfoca: blur(20px) saturate(175%);
-  --bolla: 82% 74% / .3;                 /* cerchi delle funzioni: hsl(var(--h) var(--bolla)) */
-  --bolla-bordo: 70% 80% / .7;
+  --sfoca: blur(26px) saturate(180%);
+  --bolla: 85% 72% / .2;                 /* cerchi delle funzioni: hsl(var(--h) var(--bolla)) */
+  --bolla-bordo: 70% 70% / .45;
   --raggio: 18px;
   --aurora-1: hsl(214 85% 78% / .6); --aurora-2: hsl(278 70% 84% / .5); --aurora-3: hsl(168 60% 78% / .45);
   --aurora-4: hsl(350 80% 86% / .45); --aurora-5: hsl(28 90% 84% / .35);
   --aurora-l: 80%; --aurora-a: .4;
-  --campo-linea: .15; --campo-rilievo: .2;
+  --campo-linea: .1; --campo-maestra: .17; --campo-rilievo: .14; --campo-viandante: .3;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-stile="vetro"]:not([data-theme="light"]) {
-    --fondo: #10131a; --surface: rgba(34, 40, 52, .5); --bg: rgba(8, 11, 16, .3); --line: rgba(255, 255, 255, .09);
-    --desk: rgba(0, 0, 0, .22); --accent-soft: rgba(142, 174, 226, .16);
-    --shadow: 0 12px 34px -8px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .2);
-    --vetro-bordo: rgba(255, 255, 255, .11); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .07);
-    --vetro-pieno: rgba(30, 35, 45, .8); --vetro-btn: rgba(255, 255, 255, .06); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
-    --sfoca: blur(22px) saturate(150%);
-    --bolla: 55% 45% / .3; --bolla-bordo: 45% 60% / .45;
+    --fondo: #10131a; --surface: rgba(30, 36, 48, .3); --bg: rgba(8, 11, 16, .2); --line: rgba(255, 255, 255, .08);
+    --desk: rgba(0, 0, 0, .18); --accent-soft: rgba(142, 174, 226, .14);
+    --shadow: 0 10px 30px -14px rgba(0, 0, 0, .6);
+    --vetro-bordo: rgba(255, 255, 255, .1); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .06);
+    --vetro-pieno: rgba(30, 35, 45, .48); --vetro-btn: rgba(255, 255, 255, .05); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
+    --sfoca: blur(28px) saturate(150%);
+    --bolla: 55% 50% / .2; --bolla-bordo: 50% 64% / .4;
     --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
     --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
     --aurora-l: 30%; --aurora-a: .45;
-    --campo-linea: .1; --campo-rilievo: .2;
+    --campo-linea: .07; --campo-maestra: .12; --campo-rilievo: .14; --campo-viandante: .28;
   }
 }
 :root[data-stile="vetro"][data-theme="dark"] {
-  --fondo: #10131a; --surface: rgba(34, 40, 52, .5); --bg: rgba(8, 11, 16, .3); --line: rgba(255, 255, 255, .09);
-  --desk: rgba(0, 0, 0, .22); --accent-soft: rgba(142, 174, 226, .16);
-  --shadow: 0 12px 34px -8px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .2);
-  --vetro-bordo: rgba(255, 255, 255, .11); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .07);
-  --vetro-pieno: rgba(30, 35, 45, .8); --vetro-btn: rgba(255, 255, 255, .06); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
-  --sfoca: blur(22px) saturate(150%);
-  --bolla: 55% 45% / .3; --bolla-bordo: 45% 60% / .45;
-  --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
-  --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
-  --aurora-l: 30%; --aurora-a: .45;
-  --campo-linea: .1; --campo-rilievo: .2;
+    --fondo: #10131a; --surface: rgba(30, 36, 48, .3); --bg: rgba(8, 11, 16, .2); --line: rgba(255, 255, 255, .08);
+    --desk: rgba(0, 0, 0, .18); --accent-soft: rgba(142, 174, 226, .14);
+    --shadow: 0 10px 30px -14px rgba(0, 0, 0, .6);
+    --vetro-bordo: rgba(255, 255, 255, .1); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .06);
+    --vetro-pieno: rgba(30, 35, 45, .48); --vetro-btn: rgba(255, 255, 255, .05); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
+    --sfoca: blur(28px) saturate(150%);
+    --bolla: 55% 50% / .2; --bolla-bordo: 50% 64% / .4;
+    --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
+    --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
+    --aurora-l: 30%; --aurora-a: .45;
+    --campo-linea: .07; --campo-maestra: .12; --campo-rilievo: .14; --campo-viandante: .28;
 }
 
 /* ---------- sfondo: aurora di colori sotto la mappa ---------- */
@@ -125,11 +127,12 @@
 :where(:root[data-stile="vetro"]) .btn { background: var(--vetro-btn); border-color: var(--vetro-btn-bordo); box-shadow: var(--vetro-luce); border-radius: 12px; }
 :where(:root[data-stile="vetro"]) .btn:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--vetro-luce), 0 4px 16px var(--luce); }
 :where(:root[data-stile="vetro"]) .btn.primary {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, white), var(--accent)); border-color: color-mix(in srgb, var(--accent) 70%, white);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 6px 18px -4px color-mix(in srgb, var(--accent) 55%, transparent);
+  background: var(--accent); border-color: var(--accent);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--accent) 70%, transparent);
 }
 :where(:root[data-stile="vetro"]) .btn:disabled { box-shadow: none; }
 :where(:root[data-stile="vetro"]) :is(.field input, .field select, .field textarea, .sel, .drop) { border-radius: 10px; }
+:where(:root[data-stile="vetro"]) :is(.field input, .field select, .field textarea, .sel) { border-color: var(--vetro-btn-bordo); }
 :where(:root[data-stile="vetro"]) .drop { border-color: color-mix(in srgb, var(--accent) 22%, var(--line)); }
 :where(:root[data-stile="vetro"]) .chip.ghost { background: var(--bg); }
 :where(:root[data-stile="vetro"]) .avviso { background: rgba(20, 26, 34, .82); color: #f4f6f9; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-radius: 14px; }
@@ -137,13 +140,13 @@
 @media (prefers-color-scheme: dark) { :where(:root[data-stile="vetro"]:not([data-theme="light"])) .avviso { background: rgba(226, 231, 238, .88); color: #12161c; } }
 
 /* ---------- menu circolare ---------- */
-:where(:root[data-stile="vetro"]) .mozzo { background: var(--surface); border-color: var(--vetro-bordo); box-shadow: var(--shadow), var(--vetro-luce), inset 0 -18px 40px rgba(255, 255, 255, .08); }
+:where(:root[data-stile="vetro"]) .mozzo { background: var(--surface); border-color: var(--vetro-bordo); box-shadow: var(--shadow), var(--vetro-luce); }
 :where(:root[data-stile="vetro"]) :is(.nodo-cerchio, .ancora, .volante) {
-  background: radial-gradient(120% 90% at 30% 15%, rgba(255, 255, 255, .45), transparent 55%), hsl(var(--h) var(--bolla));
+  background: hsl(var(--h) var(--bolla));
   border-color: hsl(var(--h) var(--bolla-bordo));
-  box-shadow: var(--shadow), var(--vetro-luce), inset 0 -10px 22px hsl(var(--h) 70% 55% / .14);
+  box-shadow: var(--shadow), var(--vetro-luce);
 }
-:where(:root[data-stile="vetro"]) :is(.nodo:hover, .nodo.in-luce) .nodo-cerchio { box-shadow: var(--shadow), var(--vetro-luce), 0 0 0 6px hsl(var(--h) var(--bolla)), 0 0 30px hsl(var(--h) 80% 60% / .25); }
+:where(:root[data-stile="vetro"]) :is(.nodo:hover, .nodo.in-luce) .nodo-cerchio { box-shadow: var(--shadow), var(--vetro-luce), 0 0 0 6px hsl(var(--h) var(--bolla)); }
 :where(:root[data-stile="vetro"]) .mozzo-icona.di-funzione { background: hsl(var(--h) var(--bolla)); border-color: hsl(var(--h) var(--bolla-bordo)); }
 :where(:root[data-stile="vetro"]) :is(.nodo-nome, .nodo-stato, .menu-nota) { background: var(--surface); box-shadow: var(--vetro-luce); border: 1px solid var(--vetro-bordo); border-radius: 999px; }
 :where(:root[data-stile="vetro"]) .nodo-nome { padding: 2px 10px; }
