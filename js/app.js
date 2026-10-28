@@ -5,6 +5,7 @@ import { disegnaMenu, chiudiMenu, riapriMenu, vola, cascata, rettangoloNodo, geo
 import { attivaMicroInterazioni, comparsa } from './vivo.js';
 import { creaCampo } from './campo.js';
 import { montaInterruttoreTema } from './tema.js';
+import { montaInterruttoreStile } from './stile.js';
 import { creaAssistente } from './assistente.js';
 import { emetti } from './eventi.js';
 import { salvaFile, avviso } from '../lib/salva.js';
@@ -23,6 +24,7 @@ const campo = creaCampo($('#campo'), { tinte: STRUMENTI.map(s => s.tinta) });
 campo.geometria(geometriaMenu);
 attivaMicroInterazioni();
 montaInterruttoreTema($('#tema'), { cambiato: ({ x, y }) => campo.onda(x, y, .7) });
+montaInterruttoreStile($('#stile'));
 
 // un clic sullo sfondo (non su un comando o una scheda) manda un'onda sulla mappa
 const NON_SFONDO = 'a, button, input, select, textarea, label, summary, .card, .barra, .assistente, .nodo, .mozzo, .tabella, .avviso, .tema';
@@ -85,6 +87,7 @@ async function apriStrumento(s, sezione) {
   smontaAttuale();
   attuale = { s, sezione: null, smonta: null };
   campo.modalita('strumento', { tinta: s.tinta, fuoco: cerchioAperto });
+  document.documentElement.style.setProperty('--h-attiva', s.tinta);   // l'aurora dello stile vetro prende la tinta della funzione
   disegnaLaterale(s, sezione);
   vistaMenu.hidden = true; vistaStr.hidden = false;
   window.scrollTo(0, 0);
@@ -111,6 +114,7 @@ async function mostraMenu() {
   assistente.chiudi();
   vistaStr.hidden = true; vistaMenu.hidden = false;
   campo.modalita('menu');
+  document.documentElement.style.removeProperty('--h-attiva');
   briciole.innerHTML = '';
   document.title = 'CS Strumenti';
   riapriMenu({ anima: !!veniva, tranne: veniva?.id });
