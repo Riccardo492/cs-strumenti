@@ -34,6 +34,8 @@
   --aurora-4: hsl(350 80% 86% / .45); --aurora-5: hsl(28 90% 84% / .35);
   --aurora-l: 80%; --aurora-a: .4;
   --campo-linea: .1; --campo-maestra: .17; --campo-rilievo: .14; --campo-viandante: .3;
+  --campo-attivo: 0;                     /* sfondo statico: la mappa animata si spegne (js/campo.js) */
+  --logo-1: hsl(214 80% 52%); --logo-2: hsl(var(--h-attiva, 262) 62% 60%); --logo-a: .16;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-stile="vetro"]:not([data-theme="light"]) {
@@ -48,6 +50,7 @@
     --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
     --aurora-l: 30%; --aurora-a: .45;
     --campo-linea: .07; --campo-maestra: .12; --campo-rilievo: .14; --campo-viandante: .28;
+    --logo-1: hsl(214 70% 64%); --logo-2: hsl(var(--h-attiva, 270) 55% 68%); --logo-a: .12;
   }
 }
 :root[data-stile="vetro"][data-theme="dark"] {
@@ -62,6 +65,7 @@
     --aurora-4: hsl(350 45% 26% / .4); --aurora-5: hsl(28 50% 24% / .3);
     --aurora-l: 30%; --aurora-a: .45;
     --campo-linea: .07; --campo-maestra: .12; --campo-rilievo: .14; --campo-viandante: .28;
+    --logo-1: hsl(214 70% 64%); --logo-2: hsl(var(--h-attiva, 270) 55% 68%); --logo-a: .12;
 }
 
 /* ---------- sfondo: aurora di colori sotto la mappa ---------- */
@@ -76,6 +80,18 @@
     radial-gradient(38vmax 32vmax at 48% 52%, hsl(var(--h-attiva, 28) 80% var(--aurora-l) / var(--aurora-a)), transparent 66%);
   transition: opacity .6s;
 }
+
+/* ---------- sfondo statico: il simbolo C&S grande, in basso a destra, sotto il vetro ---------- */
+.sfondo-logo { display: none; }
+:root[data-stile="vetro"] .campo { display: none; }
+:root[data-stile="vetro"] .sfondo-logo {
+  display: block; position: fixed; z-index: 0; pointer-events: none;
+  width: min(80vmin, 860px); aspect-ratio: 100 / 86.71; right: -7vmin; bottom: -6vmin;
+  background: linear-gradient(135deg, var(--logo-1), var(--logo-2));
+  -webkit-mask: url("../assets/logo-cs-segno.svg") center / contain no-repeat; mask: url("../assets/logo-cs-segno.svg") center / contain no-repeat;
+  opacity: var(--logo-a);
+}
+@media (max-width: 640px) { :root[data-stile="vetro"] .sfondo-logo { width: 120vw; right: -30vw; bottom: -8vh; } }
 
 /* ---------- lastre di vetro ---------- */
 :where(:root[data-stile="vetro"]) :where(.card, .barra, .assistente, .laterale, .testata, .mozzo, .nodo-cerchio, .ancora, .volante, .tema, .stile-btn, .menu-nota, .nodo-nome, .nodo-stato) {

@@ -59,7 +59,7 @@ export function creaCampo(canvas, { tinte }) {
   let modo = 'menu', attivo = null, geometria = null, fuoco = null, tintaStrumento = tinte[0];
   let forza = 1, col = {}, lut = null, firmaLut = '';
   let impulsi = [], scintille = [], onde = [];
-  let mediaMs = 6, contaFrame = 0;
+  let mediaMs = 6, contaFrame = 0, spento = false;
   const pt = { x: -9999, y: -9999, sx: -9999, sy: -9999, dentro: false, a: 0 };
   const rilievi = new Map();   // id → { x, y, s, a, meta, h }
   const centro = { x: 0, y: 0, s: 1, a: 0, meta: 0 };
@@ -73,6 +73,9 @@ export function creaCampo(canvas, { tinte }) {
       rs: n('--campo-rilievo-s', 62), rl: n('--campo-rilievo-l', 62), rilievo: n('--campo-rilievo', .13), viandante: n('--campo-viandante', .5), vs: n('--campo-viandante-s', 60), vl: n('--campo-viandante-l', 46),
       sat: n('--tinta-s', 46), ink: n('--tinta-ink-l', 32),
     };
+    // uno stile può chiedere uno sfondo statico (--campo-attivo: 0): la mappa si spegne e non consuma niente
+    spento = n('--campo-attivo', 1) <= 0;
+    if (spento) { ferma(); ctx.clearRect(0, 0, W, H); } else avvia();
     firmaLut = '';
     if (riduciMovimento()) richiediFermo();
   }
@@ -392,11 +395,11 @@ export function creaCampo(canvas, { tinte }) {
     tempo += dt;
     disegna(dt);
   }
-  function avvia() { if (!raf && !riduciMovimento() && !document.hidden) { ultimo = performance.now(); raf = requestAnimationFrame(ciclo); } }
+  function avvia() { if (!raf && !spento && !riduciMovimento() && !document.hidden) { ultimo = performance.now(); raf = requestAnimationFrame(ciclo); } }
   function ferma() { cancelAnimationFrame(raf); raf = 0; }
   let fermoChiesto = 0;
   function richiediFermo() {
-    if (fermoChiesto) return;
+    if (fermoChiesto || spento) return;
     fermoChiesto = requestAnimationFrame(() => { fermoChiesto = 0; if (!raf) disegna(16, true); });
   }
 
@@ -427,13 +430,13 @@ export function creaCampo(canvas, { tinte }) {
     evidenzia(id) { attivo = id; },
     /** Un'onda che parte da un punto e attraversa la mappa. */
     onda(x, y, forzaOnda = .55) {
-      if (riduciMovimento()) return;
+      if (riduciMovimento() || spento) return;
       onde.push({ x, y, t: 0, r: 0, dur: 2200, a0: forzaOnda, a: forzaOnda });
       if (onde.length > 4) onde.shift();
     },
     /** Esplosione di scintille in un punto (con la sua onda). */
     scintille(x, y, h, n = 14) {
-      if (riduciMovimento()) return;
+      if (riduciMovimento() || spento) return;
       for (let i = 0; i < n; i++) { const a = Math.random() * TAU, v = 26 + Math.random() * 44; scintille.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, h, t: 0, dur: 500 + Math.random() * 300 }); }
       this.onda(x, y);
     },
