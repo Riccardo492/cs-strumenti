@@ -22,6 +22,7 @@
   --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .85);
   --vetro-pieno: rgba(255, 255, 255, .8);
   --vetro-btn: rgba(255, 255, 255, .62);
+  --vetro-btn-bordo: rgba(31, 41, 52, .15);
   --vetro-solido: rgba(248, 250, 252, .94);
   --sfoca: blur(20px) saturate(175%);
   --bolla: 82% 74% / .3;                 /* cerchi delle funzioni: hsl(var(--h) var(--bolla)) */
@@ -38,7 +39,7 @@
     --desk: rgba(0, 0, 0, .22); --accent-soft: rgba(142, 174, 226, .16);
     --shadow: 0 12px 34px -8px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .2);
     --vetro-bordo: rgba(255, 255, 255, .11); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .07);
-    --vetro-pieno: rgba(30, 35, 45, .8); --vetro-btn: rgba(255, 255, 255, .06); --vetro-solido: rgba(26, 31, 40, .95);
+    --vetro-pieno: rgba(30, 35, 45, .8); --vetro-btn: rgba(255, 255, 255, .06); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
     --sfoca: blur(22px) saturate(150%);
     --bolla: 55% 45% / .3; --bolla-bordo: 45% 60% / .45;
     --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
@@ -52,7 +53,7 @@
   --desk: rgba(0, 0, 0, .22); --accent-soft: rgba(142, 174, 226, .16);
   --shadow: 0 12px 34px -8px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .2);
   --vetro-bordo: rgba(255, 255, 255, .11); --vetro-luce: inset 0 1px 0 rgba(255, 255, 255, .07);
-  --vetro-pieno: rgba(30, 35, 45, .8); --vetro-btn: rgba(255, 255, 255, .06); --vetro-solido: rgba(26, 31, 40, .95);
+  --vetro-pieno: rgba(30, 35, 45, .8); --vetro-btn: rgba(255, 255, 255, .06); --vetro-btn-bordo: rgba(255, 255, 255, .13); --vetro-solido: rgba(26, 31, 40, .95);
   --sfoca: blur(22px) saturate(150%);
   --bolla: 55% 45% / .3; --bolla-bordo: 45% 60% / .45;
   --aurora-1: hsl(214 60% 30% / .6); --aurora-2: hsl(278 45% 28% / .5); --aurora-3: hsl(168 45% 22% / .45);
@@ -121,7 +122,7 @@
 :where(:root[data-stile="vetro"]) .tema-cursore { background: var(--vetro-solido); border-color: var(--vetro-bordo); }
 
 /* ---------- comandi ---------- */
-:where(:root[data-stile="vetro"]) .btn { background: var(--vetro-btn); border-color: var(--vetro-bordo); box-shadow: var(--vetro-luce); border-radius: 12px; }
+:where(:root[data-stile="vetro"]) .btn { background: var(--vetro-btn); border-color: var(--vetro-btn-bordo); box-shadow: var(--vetro-luce); border-radius: 12px; }
 :where(:root[data-stile="vetro"]) .btn:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); box-shadow: var(--vetro-luce), 0 4px 16px var(--luce); }
 :where(:root[data-stile="vetro"]) .btn.primary {
   background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, white), var(--accent)); border-color: color-mix(in srgb, var(--accent) 70%, white);
