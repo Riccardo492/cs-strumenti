@@ -32,7 +32,7 @@ details.ric-mappa[open] summary::before { transform: rotate(45deg); }
 .ric-elenco tbody tr.ko td { color: var(--muted); }
 .ric-chi { font-weight: 600; }
 
-.ric-anteprima { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); display: grid; gap: 10px; min-width: 0; }
+.ric-anteprima { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--sopra, 12px)); display: grid; gap: 10px; min-width: 0; }
 .ric-ant-testa { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
 .ric-ant-testa h3 { margin: 0; font-size: 15px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
 .ric-note { margin: 0; padding: 10px 12px 10px 30px; border-radius: var(--r); font-size: 13px; display: grid; gap: 2px; }

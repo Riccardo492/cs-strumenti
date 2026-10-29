@@ -87,6 +87,10 @@ function disegnaBriciole() {
     : '<span aria-current="page">Scrivania</span>';
 }
 window.addEventListener('resize', () => { muoviPillola(); disegnaSchede(); });
+/* altezza della testata: serve al velo che nasconde il contenuto quando scorre sotto di lei (css/vetro.css) */
+const testata = $('.testata');
+const misuraTestata = () => document.documentElement.style.setProperty('--testata-h', testata.offsetHeight + 'px');
+misuraTestata(); new ResizeObserver(misuraTestata).observe(testata);
 
 /* orologio, numerini delle cose da fare */
 function orologio() { const d = new Date(); $('#ora').textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
