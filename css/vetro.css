@@ -103,6 +103,8 @@
   box-shadow: var(--shadow), var(--vetro-luce);
 }
 :where(:root[data-stile="vetro"]) .card:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--vetro-bordo)); }
+/* l'assistente galleggia sopra il contenuto: quasi pieno, così il testo dietro non disturba la lettura */
+:where(:root[data-stile="vetro"]) .assistente { background-color: var(--vetro-solido); box-shadow: 0 18px 44px -16px rgba(0, 0, 0, .38), var(--vetro-luce); }
 :where(:root[data-stile="vetro"]) .sc-scheda:hover { border-color: hsl(var(--h) 60% 60% / .5); box-shadow: var(--shadow), var(--vetro-luce), 0 16px 34px -22px hsl(var(--h) 60% 35% / .8); }
 :where(:root[data-stile="vetro"]) .sc-scheda { border-radius: 18px; }
 :where(:root[data-stile="vetro"]) .sc-pannello { border-radius: 22px; }
