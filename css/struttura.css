@@ -183,6 +183,21 @@ a.pillola:focus-visible { outline-offset: -2px; }
 @keyframes vt-svanisce { to { opacity: 0; } }
 @keyframes vt-appare { from { opacity: 0; } }
 
+/* «Guidami passo passo»: in basso a destra, resta a portata di clic mentre la pagina scorre.
+   Mentre l'assistente è aperto (stesso angolo) il bottone si nasconde; la pagina lascia spazio in fondo per lui. */
+.btn.guida-fissa {
+  position: fixed; z-index: 30; right: max(16px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  min-height: 46px; padding: 6px 18px 6px 14px; border-radius: 999px; background: var(--pieno); border-color: var(--line);
+  -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .4), 0 2px 6px rgba(0, 0, 0, .08);
+}
+.btn.guida-fissa:hover { border-color: var(--accent); box-shadow: 0 16px 36px -14px rgba(0, 0, 0, .45), 0 0 0 4px var(--accent-soft); }
+.guida-fissa svg { width: 18px; height: 18px; color: var(--accent); }
+.guida-fissa:not([hidden]) { animation: guida-arriva .45s cubic-bezier(.2, 1.25, .4, 1); }
+@keyframes guida-arriva { from { opacity: 0; transform: translateY(18px) scale(.94); } }
+.assistente:not([hidden]) ~ .guida-fissa { display: none; }
+body:has(.guida-fissa:not([hidden])) { padding-bottom: 92px; }
+
 /* richiamo sull'elenco «Da fare» quando si arriva dalla campanella */
 .lampeggia { animation: lampeggia 1.4s ease-out; }
 @keyframes lampeggia { 0%, 30% { box-shadow: 0 0 0 3px var(--accent), var(--shadow); } 100% { box-shadow: 0 0 0 14px transparent, var(--shadow); } }

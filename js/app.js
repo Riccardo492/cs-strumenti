@@ -87,6 +87,12 @@ function disegnaBriciole() {
     : '<span aria-current="page">Scrivania</span>';
 }
 window.addEventListener('resize', () => { muoviPillola(); disegnaSchede(); });
+
+/* «Guidami passo passo»: bottone fisso in basso a destra, resta a portata di clic mentre la pagina scorre;
+   sparisce mentre l'assistente è aperto (css/struttura.css) e nelle sezioni senza guida */
+const bottoneGuida = $('#btn-guida');
+bottoneGuida.innerHTML = ICONA_GUIDA + '<span>Guidami passo passo</span>';
+bottoneGuida.addEventListener('click', () => avviaGuida());
 /* altezza della testata: serve al velo che nasconde il contenuto quando scorre sotto di lei (css/vetro.css) */
 const testata = $('.testata');
 const misuraTestata = () => document.documentElement.style.setProperty('--testata-h', testata.offsetHeight + 'px');
@@ -179,6 +185,7 @@ async function passaggio(aggiorna, verso = 'avanti', salto = 'funzione') {
   const r = document.documentElement;
   r.dataset.verso = verso; r.dataset.salto = salto; r.dataset.vtUscita = '';
   const vt = vtAttuale = document.startViewTransition(fai);
+  vt.ready.catch(() => {});   // passaggio saltato (per esempio la finestra cambia misura): la vista cambia comunque
   try { await vt.updateCallbackDone; } catch (e) { console.error(e); }
   vt.finished.catch(() => {}).finally(() => { if (vtAttuale === vt) { delete r.dataset.verso; delete r.dataset.salto; delete r.dataset.vtUscita; vtAttuale = null; } });
 }
@@ -239,6 +246,7 @@ async function mostraScrivania() {
   vista.dataset.vista = 'scrivania';
   vista.style.removeProperty('--h');
   document.documentElement.style.removeProperty('--h-attiva');
+  bottoneGuida.hidden = true;
   campo.modalita('menu');
   document.title = 'Scrivania · CS Strumenti';
   muoviPillola(); disegnaSchede(); disegnaBriciole();
@@ -266,11 +274,9 @@ async function mostraFunzione(s, sezione) {
           <p class="pt-desc"></p>
           ${s.siti && s.siti.length ? `<p class="pt-siti"><span>Siti collegati</span>${s.siti.map(l => `<a href="${escHtml(l.url)}" target="_blank" rel="noopener" title="${escHtml(l.descrizione || '')}">${escHtml(l.nome)} <span aria-hidden="true">↗</span></a>`).join('')}</p>` : ''}
         </div>
-        <div class="pt-azioni"><button class="btn" type="button" id="btn-guida">${ICONA_GUIDA}Guidami passo passo</button></div>
       </header>
       ${s.percorso ? '<div class="percorso-box" id="percorso"></div>' : ''}
       <div class="contenuto" id="contenuto"></div>`;
-    $('#btn-guida').addEventListener('click', avviaGuida);
     if (s.percorso) attuale.percorso = creaPercorso($('#percorso'), { tappe: s.sezioni.map(x => ({ id: x.id, nome: x.nome.replace(/^\d+\s*·\s*/, '') })), href: id => `#${s.id}.${id}` });
   }
   attuale.sezione = sezione;
@@ -280,7 +286,7 @@ async function mostraFunzione(s, sezione) {
   vista.querySelector('.pt-desc').textContent = sez.descrizione || '';
   muoviPillola(); disegnaSchede(); disegnaBriciole();
   const passi = s.guida && s.guida[sezione];
-  $('#btn-guida').hidden = !(passi && passi.length);
+  bottoneGuida.hidden = !(passi && passi.length);
   const contenuto = $('#contenuto');
   contenuto.innerHTML = '<div class="sez-corpo"></div>';
   const ctx = {
