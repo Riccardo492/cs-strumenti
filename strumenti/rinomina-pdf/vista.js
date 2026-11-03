@@ -4,7 +4,7 @@ import { impronta } from '../../lib/attivita.js';
 import { leggiFoglio, trovaIntestazione, intestazioni, scriviCsv } from '../../lib/excel.js';
 import { raccogliFile, fmtDimensione } from '../../lib/file.js';
 import { scorriNumero, comparsa } from '../../js/vivo.js';
-import { SEGNAPOSTO_FILE, SEGNAPOSTO_PDF, OPZIONI_BASE, MODI_ABBINAMENTO, abbina, abbinamentoMigliore, modelloSuggerito, calcolaNomi, ordina, trovaCf, trovaTesto, colonneNominativo, usaExcel } from './regole.js';
+import { tagliaInizio, SEGNAPOSTO_FILE, SEGNAPOSTO_PDF, OPZIONI_BASE, MODI_ABBINAMENTO, abbina, abbinamentoMigliore, modelloSuggerito, calcolaNomi, ordina, trovaCf, trovaTesto, colonneNominativo, usaExcel } from './regole.js';
 import { norm } from '../../lib/formati.js';
 import { leggiTesto, disegnaAnteprima } from './pdftesto.js';
 import { analizzaPdf, modificaPdf } from './modifica.js';
@@ -24,6 +24,7 @@ export const REGOLE_PRONTE = [
   { nome: 'Elaborati → codice domanda e nominativo', descrizione: "Collega l'elenco candidati: ogni ID_Elaborato_xxxx.pdf diventa CODICE_COGNOME_NOME.pdf e dentro il PDF «ID Elaborato: …» diventa «Codice domanda: … – COGNOME NOME».", modello: '{ID}_{nominativo}', opz: { maiuscole: 'su' }, mod: { attivo: true, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID} – {nominativo}', corpo: true, maiuscole: 'su' } },
   { nome: 'Elaborati → solo codice domanda', descrizione: "Come sopra, ma senza il nominativo: il file diventa CODICE.pdf e dentro il PDF compare «Codice domanda: …».", modello: '{ID}', opz: {}, mod: { attivo: true, etichetta: 'ID Elaborato:', nuovo: 'Codice domanda: {ID}', corpo: true, maiuscole: 'su' } },
   { nome: 'Elaborati anonimi → nome del candidato', descrizione: "Per i file ID_Elaborato_xxxx.pdf: collega l'elenco candidati esportato dalla piattaforma (Test Code) e ogni elaborato prende cognome, nome e codice fiscale.", modello: '{Last Name}_{First Name}_{CF}', opz: { maiuscole: 'su' } },
+  { nome: 'Elaborati scaricati → togli il codice iniziale', descrizione: "Per i file scaricati dalla piattaforma come «fb0ad74a-157e-…-a89136efc7ca_66-oqWVZH.pdf»: toglie tutto fino al primo trattino basso compreso (i primi 37 caratteri) e resta «66-oqWVZH.pdf». Maiuscole e minuscole restano com'erano.", modello: '{file}', opz: { taglia: 'trattino' } },
   { nome: "Solo l'ID elaborato", descrizione: 'Da ID_Elaborato_chj56eich.pdf a chj56eich.pdf.', modello: '{file}', opz: { cerca: 'ID_Elaborato_' } },
   { nome: 'Cognome_Nome_CF da Excel', descrizione: "Collega un Excel con colonne COGNOME, NOME e CODICE FISCALE: ogni PDF prende i dati della sua riga.", modello: '{COGNOME}_{NOME}_{CODICE FISCALE}', opz: { maiuscole: 'su' } },
   { nome: 'Codice fiscale letto dal PDF', descrizione: 'Cerca il codice fiscale dentro ogni PDF e lo usa come nome.', modello: '{pdf:cf}', opz: { maiuscole: 'su' }, pdf: { attivo: true, cosa: 'cf' } },
@@ -99,6 +100,11 @@ export async function montaRinomina(el, ctx) {
           <div class="rp-altro-corpo">
             <label class="check"><input type="checkbox" id="rp-accenti"><b>Togli accenti e caratteri speciali</b><small>«D'Angelo Nicolò» diventa «DAngelo Nicolo»: evita problemi con alcuni programmi e piattaforme.</small></label>
             <label class="check"><input type="checkbox" id="rp-cartelle"><b>Mantieni le cartelle nello ZIP</b><small>Utile se hai caricato più cartelle e vuoi ritrovarle.</small></label>
+            <div class="rp-sost">
+              <div class="field"><label for="rp-taglia">Togli dall'inizio del nome attuale</label><select id="rp-taglia"><option value="">niente</option><option value="trattino">tutto fino al primo «_»</option><option value="car">un numero di caratteri</option></select></div>
+              <div class="field" id="rp-taglia-n-campo"><label for="rp-taglia-n">Quanti caratteri</label><input id="rp-taglia-n" type="number" min="1" inputmode="numeric"></div>
+            </div>
+            <p class="hint rp-taglia-nota" id="rp-taglia-nota"></p>
             <div class="rp-sost">
               <div class="field"><label for="rp-cerca">Cerca nel nome</label><input id="rp-cerca" placeholder="es. scansione"></div>
               <div class="field"><label for="rp-sostituisci">Sostituisci con</label><input id="rp-sostituisci" placeholder="(niente)"></div>
@@ -182,12 +188,25 @@ export async function montaRinomina(el, ctx) {
   }
 
   /* ---------- 2 · nome ---------- */
+  /** Mostra quanti caratteri e un esempio con il primo file: «fb0a…_66-oqWVZH» → «66-oqWVZH». */
+  function disegnaTaglia() {
+    $('#rp-taglia-n-campo').hidden = S.opz.taglia !== 'car';
+    const f = S.file[0], nota = $('#rp-taglia-nota');
+    nota.hidden = !S.opz.taglia || !f;
+    if (!nota.hidden) {
+      const dopo = tagliaInizio(f.base, S.opz);
+      nota.innerHTML = `Vale per <span class="mono">{file}</span>. Primo file: <span class="mono">${escHtml(f.base)}</span> → <span class="mono"><b>${escHtml(dopo || '(niente)')}</b></span>` + (S.opz.taglia === 'trattino' && f.base.includes('_') ? ` (tolti ${f.base.indexOf('_') + 1} caratteri)` : '');
+    }
+  }
   function disegnaOpzioni() {
     $('#rp-modello').value = S.modello;
     $('#rp-maiuscole').value = S.opz.maiuscole; $('#rp-spazi').value = S.opz.spazi;
     $('#rp-inizio').value = S.opz.inizio; $('#rp-cifre').value = String(S.opz.cifre || 0);
     $('#rp-accenti').checked = S.opz.accenti; $('#rp-cartelle').checked = S.opz.cartelle;
     $('#rp-cerca').value = S.opz.cerca; $('#rp-sostituisci').value = S.opz.sostituisci;
+    $('#rp-taglia').value = S.opz.taglia || ''; $('#rp-taglia-n').value = S.opz.tagliaN || '';
+    disegnaTaglia();
+    if (S.opz.taglia) $('#rp-altro').open = true;
     disegnaRegole();
   }
   function disegnaGettoni() {
@@ -602,7 +621,14 @@ export async function montaRinomina(el, ctx) {
   });
   const opz = (id, k, conv = v => v, ev = 'change') => $(id).addEventListener(ev, e => { S.opz[k] = conv(e.target.type === 'checkbox' ? e.target.checked : e.target.value); ricalcolaPresto(); });
   opz('#rp-maiuscole', 'maiuscole'); opz('#rp-spazi', 'spazi'); opz('#rp-inizio', 'inizio', v => Math.max(0, parseInt(v, 10) || 0), 'input'); opz('#rp-cifre', 'cifre', v => +v);
-  opz('#rp-accenti', 'accenti'); opz('#rp-cartelle', 'cartelle'); opz('#rp-cerca', 'cerca', v => v, 'input'); opz('#rp-sostituisci', 'sostituisci', v => v, 'input');
+  opz('#rp-accenti', 'accenti'); opz('#rp-cartelle', 'cartelle'); opz('#rp-cerca', 'cerca', v => v, 'input'); opz('#rp-taglia-n', 'tagliaN', v => Math.max(0, parseInt(v, 10) || 0), 'input');
+  $('#rp-taglia').addEventListener('change', e => {
+    S.opz.taglia = e.target.value;
+    // un numero di caratteri: si propone quanti ce ne sono fino al primo «_» del primo file
+    if (S.opz.taglia === 'car' && !S.opz.tagliaN && S.file[0]?.base.includes('_')) { S.opz.tagliaN = S.file[0].base.indexOf('_') + 1; $('#rp-taglia-n').value = S.opz.tagliaN; }
+    disegnaTaglia(); ricalcolaPresto(); ctx.emetti('modello-cambiato');
+  });
+  $('#rp-taglia-n').addEventListener('input', () => setTimeout(disegnaTaglia, 0)); opz('#rp-sostituisci', 'sostituisci', v => v, 'input');
 
   const tb = $('#rp-tbody');
   tb.addEventListener('change', e => {

@@ -5,7 +5,7 @@ import { cfOk } from '../../lib/controlli.js';
 /* Segnaposto sempre disponibili e quelli che arrivano dalla lettura dei PDF.
    Le colonne dell'Excel collegato diventano segnaposto con il nome dell'intestazione: {COGNOME}, {ID ELABORATO}… */
 export const SEGNAPOSTO_FILE = [
-  { t: 'file', d: 'nome attuale, senza .pdf' },
+  { t: 'file', d: "nome attuale, senza .pdf (e senza l'inizio, se in «Altre opzioni» scegli di toglierlo)" },
   { t: 'n', d: 'numero progressivo' },
   { t: 'cartella', d: 'cartella di provenienza' },
   { t: 'oggi', d: 'data di oggi (aaaa-mm-gg)' },
@@ -16,7 +16,18 @@ export const SEGNAPOSTO_PDF = [
   { t: 'pdf:pagine', d: 'numero di pagine' },
 ];
 
-export const OPZIONI_BASE = { maiuscole: 'come', spazi: '_', accenti: true, cerca: '', sostituisci: '', inizio: 1, cifre: 0, cartelle: false };
+export const OPZIONI_BASE = { maiuscole: 'come', spazi: '_', accenti: true, cerca: '', sostituisci: '', inizio: 1, cifre: 0, cartelle: false, taglia: '', tagliaN: 0 };
+
+/**
+ * Toglie l'inizio del nome attuale, prima di usarlo in {file}:
+ * taglia = 'car' → i primi tagliaN caratteri; 'trattino' → tutto fino al primo «_» compreso.
+ * Esempio: «fb0ad74a-157e-4b2b-aa74-a89136efc7ca_66-oqWVZH» → «66-oqWVZH» (sono 37 caratteri, fino al «_»).
+ */
+export function tagliaInizio(base, o) {
+  if (o.taglia === 'car') return base.slice(Math.max(0, Math.floor(+o.tagliaN) || 0));
+  if (o.taglia === 'trattino') { const i = base.indexOf('_'); return i >= 0 ? base.slice(i + 1) : base; }
+  return base;
+}
 
 const oggi = () => { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
 const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -152,7 +163,7 @@ export function calcolaNomi({ file, modello, opz, excel, abbinati, testi, pdf, m
     // valore di un segnaposto per questo file
     const valore = tok => {
       const k = norm(tok);
-      if (k === 'file') return f.base;
+      if (k === 'file') return tagliaInizio(f.base, opz);
       if (k === 'n') return String(n).padStart(cifre, '0');
       if (k === 'cartella') return f.cartella.split('/').pop() || '';
       if (k === 'oggi') return oggi();

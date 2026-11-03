@@ -24,6 +24,7 @@
 details.rp-altro summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--accent); }
 .rp-altro-corpo { display: grid; gap: 10px; padding-top: 10px; }
 .rp-sost { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rp-taglia-nota { overflow-wrap: anywhere; margin-top: -4px; }
 .rp-regole { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; padding-top: 4px; border-top: 1px solid var(--line); padding-top: 12px; }
 .rp-usa { flex: 1 1 220px; }
 .rp-salva-box { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
