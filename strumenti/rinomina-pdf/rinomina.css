@@ -91,10 +91,12 @@ details.rp-altro summary { cursor: pointer; font-weight: 600; font-size: 13.5px;
 .ew-nome { display: block; font-size: 11.5px; overflow-wrap: anywhere; }
 #ew-tbody .chip { margin: 1px 0; }
 .ew-anteprima { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--sopra, 12px)); }
-.ew-fogli { display: grid; gap: 12px; max-height: min(74vh, 820px); overflow: auto; padding: 12px; border-radius: 10px; background: var(--desk); }
-/* un foglio A4: le misure in cqw seguono la larghezza del foglio (210 mm = 100cqw) */
-.ew-foglio { container-type: inline-size; aspect-ratio: 210 / 297; background: var(--paper); color: var(--paper-ink); filter: var(--doc-filtro); border-radius: 2px; box-shadow: 0 1px 3px rgba(0, 0, 0, .18); }
-.ew-pag { padding: 5.2cqw 11.9cqw 11.9cqw; font-family: Arial, "Liberation Sans", Helvetica, sans-serif; font-size: 1.85cqw; line-height: 1.32; }
+.ew-fogli { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; max-height: min(74vh, 820px); overflow: auto; padding: 12px; border-radius: 10px; background: var(--desk); }
+/* Un foglio A4: le misure in cqw seguono la larghezza del foglio (210 mm = 100cqw).
+   Il foglio è largo quanto la colonna e alto almeno come un A4 (141,4cqw); se il testo è più lungo, si allunga.
+   Niente aspect-ratio qui: con testi lunghi farebbe allargare il foglio, e con lui i caratteri. */
+.ew-foglio { container-type: inline-size; min-width: 0; background: var(--paper); color: var(--paper-ink); filter: var(--doc-filtro); border-radius: 2px; box-shadow: 0 1px 3px rgba(0, 0, 0, .18); }
+.ew-pag { min-height: 141.43cqw; padding: 5.2cqw 11.9cqw 11.9cqw; font-family: Arial, "Liberation Sans", Helvetica, sans-serif; font-size: 1.85cqw; line-height: 1.32; }
 .ew-testa { text-align: center; font-weight: 700; font-size: 2.02cqw; margin-bottom: 4.6cqw; }
 .ew-pag p { margin: 0 0 .67cqw; white-space: pre-wrap; tab-size: 4; overflow-wrap: anywhere; }
 .ew-pag p.b { font-weight: 700; }
