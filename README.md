@@ -176,6 +176,19 @@ File: `stato.js` (dati ed esempio), `ia.js` (richieste a Claude e lettura delle 
 
 Raccoglie i lavori in blocco sui PDF. La funzione si chiamava «Rinomina file PDF»: l'indirizzo resta `#rinomina-pdf`, così collegamenti e regole salvate continuano a valere.
 
+### Elaborati da Word
+
+Fa quello che faceva il programma «Convertitore DOCX a PDF» (wordXC1.exe), ma nel browser e senza bisogno di Microsoft Word. Si carica il Word esportato dalla piattaforma, con tutti i candidati uno dopo l'altro, e se ne ricava un documento per candidato:
+
+- **Anonimo:** le righe «Test Name:», «Testing Window:» ed «Examinee Name:» vengono tolte.
+- **ID elaborato:** «External ID: xxxx» apre l'elaborato di un nuovo candidato e diventa «ID Elaborato: xxxx», scritto anche in testa a ogni pagina (Arial 12, grassetto, centrato). Il file si chiama `ID_Elaborato_xxxx` (il modello del nome si può cambiare).
+- **Domande e risposte:** «Question» diventa «Domanda» e «Answer» diventa «Risposta», in grassetto. Dalla seconda domanda in poi si va a pagina nuova. Dopo ogni risposta, e alla fine, c'è una riga «|» (si può togliere).
+- **Formato:** Word e PDF (i PDF nella cartella `PDF` dello ZIP), solo PDF o solo Word. Pagina A4, Arial 11 nel Word e Helvetica 11 nel PDF. Nel PDF i caratteri fuori dall'alfabeto latino (lettere greche, emoji, frecce) diventano «?»; nel Word restano.
+- **Controlli:** ID ripetuti o vuoti vengono segnalati e non sovrascrivono un altro file (_2, «senza_ID»); si segnalano anche le domande senza risposta. Prima del download si vede l'anteprima di ogni elaborato.
+- **Passa a «Rinomina»:** i PDF vanno direttamente alla sezione accanto, per esempio per dare a ogni elaborato il codice domanda e il nominativo dall'elenco candidati. L'intestazione dei PDF è marcata come intestazione di pagina, come fa Word, quindi «Cambia un testo dentro i PDF» la riconosce.
+
+Come nel programma, contano solo i paragrafi del corpo del documento: il testo dentro le tabelle resta fuori. File: `elaborati.js` (lettura, divisione, Word e PDF) e `vista-elaborati.js`.
+
 ### Rinomina
 
 Si caricano i PDF (anche una cartella intera o un .zip), si scrive il **modello del nome** e si scarica uno ZIP con i file rinominati: gli originali non vengono toccati. Il nome si compone con:

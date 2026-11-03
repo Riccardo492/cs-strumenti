@@ -26,7 +26,7 @@ const plur = (n, uno, tanti) => `${fmtN(n)} ${n === 1 ? uno : tanti}`;
 const METRICHE = [
   { id: 'ricevute', nome: 'Ricevute', f: 'ricevute', a: 'generate', campo: 'n', formato: fmtN, unita: n => n === 1 ? 'ricevuta' : 'ricevute' },
   { id: 'compensi', nome: 'Compensi netti', breve: 'Compensi', f: 'ricevute', a: 'generate', campo: 'importo', formato: fmtE, unita: () => 'netti' },
-  { id: 'pdf', nome: 'PDF rinominati', breve: 'PDF', f: 'rinomina-pdf', a: 'rinominati', campo: 'n', formato: fmtN, unita: n => n === 1 ? 'PDF' : 'PDF' },
+  { id: 'pdf', nome: 'PDF rinominati', breve: 'PDF', f: 'rinomina-pdf', sezione: 'rinomina', a: 'rinominati', campo: 'n', formato: fmtN, unita: n => n === 1 ? 'PDF' : 'PDF' },
   { id: 'domande', nome: 'Domande preparate', breve: 'Domande', f: 'batterie-domande', a: 'generate', campo: 'n', formato: fmtN, unita: n => n === 1 ? 'domanda' : 'domande' },
 ];
 
@@ -162,6 +162,7 @@ function quando(t) {
 }
 function descrivi(e) {
   if (e.f === 'ricevute') return { testo: `${e.n === 1 ? 'Generata 1 ricevuta' : `Generate ${fmtN(e.n)} ricevute`}`, dettaglio: e.importo ? `${fmtE(e.importo)} netti` : '' };
+  if (e.f === 'rinomina-pdf' && e.a === 'elaborati') return { testo: `Preparati ${plur(e.n, 'elaborato anonimo', 'elaborati anonimi')}`, dettaglio: '' };
   if (e.f === 'rinomina-pdf') return { testo: `Rinominati ${plur(e.n, 'PDF', 'PDF')}`, dettaglio: '' };
   if (e.f === 'batterie-domande' && e.a === 'stampate') return { testo: 'Stampata una batteria', dettaglio: plur(e.n, 'domanda', 'domande') };
   if (e.f === 'batterie-domande') return { testo: `Preparate ${plur(e.n, 'domanda', 'domande')}`, dettaglio: '' };
@@ -236,7 +237,7 @@ export async function montaScrivania(el, { strumenti, primoGiro }) {
       ${schede.map((c, i) => {
         const s = strumento(c.m.f), vt = !iconeUsate.has(s.id);
         iconeUsate.add(s.id);
-        return `<a class="sc-scheda" href="#${s.id}" style="--h:${s.tinta}">
+        return `<a class="sc-scheda" href="#${s.id}${c.m.sezione ? '.' + c.m.sezione : ''}" style="--h:${s.tinta}">
           <span class="sc-scheda-testa"><span class="sc-icona${vt ? ' vt-ico' : ''}"${vt ? ` style="--vt: ico-${s.id}"` : ''}>${s.icona}</span><span>${escHtml(c.m.nome)} · ${mese}</span></span>
           <span class="sc-valore" data-i="${i}">${c.m.formato(c.valore)}</span>
           <span class="sc-nota${c.su ? ' su' : ''}" title="${escHtml(c.nota)}">${escHtml(c.nota)}</span>

@@ -10,7 +10,7 @@
 
 const URL_PDFLIB = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
 let promessa = null;
-function pdfLib() {
+export function pdfLib() {
   if (window.PDFLib) return Promise.resolve(window.PDFLib);
   if (!promessa) {
     promessa = new Promise((ok, ko) => {

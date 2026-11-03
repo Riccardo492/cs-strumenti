@@ -1,4 +1,4 @@
-/* Rinomina file PDF. Le misure seguono la larghezza dell'area contenuto (container query). */
+/* Lavori PDF (Rinomina ed Elaborati da Word). Le misure seguono la larghezza dell'area contenuto (container query). */
 .rpdf { display: grid; gap: 16px; }
 .rpdf-riga { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 16px; align-items: start; }
 .rpdf-riga + .rpdf-riga { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -76,8 +76,39 @@ details.rp-altro summary { cursor: pointer; font-weight: 600; font-size: 13.5px;
 .rp-regola > div { display: grid; gap: 2px; min-width: 0; }
 .rp-regola-mod { font-size: 12.5px; color: var(--accent); overflow-wrap: anywhere; }
 
+/* Elaborati da Word */
+#ew-opz { align-content: start; }
+.ew-opz-riga { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr); gap: 10px; }
+.ew-avanza { display: grid; gap: 4px; width: 100%; }
+.ew-lavoro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ew-scorri { max-height: min(72vh, 760px); overflow: auto; }
+#ew-tbody tr[data-i] { cursor: pointer; }
+#ew-tbody tr[data-i] td { transition: background-color .15s; }
+#ew-tbody tr[data-i]:hover td { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+#ew-tbody tr[aria-selected="true"] td { background: var(--accent-soft); }
+#ew-tbody tr[data-i]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ew-id { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.ew-nome { display: block; font-size: 11.5px; overflow-wrap: anywhere; }
+#ew-tbody .chip { margin: 1px 0; }
+.ew-anteprima { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--sopra, 12px)); }
+.ew-fogli { display: grid; gap: 12px; max-height: min(74vh, 820px); overflow: auto; padding: 12px; border-radius: 10px; background: var(--desk); }
+/* un foglio A4: le misure in cqw seguono la larghezza del foglio (210 mm = 100cqw) */
+.ew-foglio { container-type: inline-size; aspect-ratio: 210 / 297; background: var(--paper); color: var(--paper-ink); filter: var(--doc-filtro); border-radius: 2px; box-shadow: 0 1px 3px rgba(0, 0, 0, .18); }
+.ew-pag { padding: 5.2cqw 11.9cqw 11.9cqw; font-family: Arial, "Liberation Sans", Helvetica, sans-serif; font-size: 1.85cqw; line-height: 1.32; }
+.ew-testa { text-align: center; font-weight: 700; font-size: 2.02cqw; margin-bottom: 4.6cqw; }
+.ew-pag p { margin: 0 0 .67cqw; white-space: pre-wrap; tab-size: 4; overflow-wrap: anywhere; }
+.ew-pag p.b { font-weight: 700; }
+.ew-pag p.vuoto { min-height: 1.32em; }
+
 @container contenuto (max-width: 980px) {
   .rpdf-riga, .rpdf-riga + .rpdf-riga { grid-template-columns: minmax(0, 1fr); }
+  .ew-lavoro { grid-template-columns: minmax(0, 1fr); }
+  .ew-anteprima { position: static; }
+}
+@container contenuto (max-width: 560px) {
+  .ew-opz-riga { grid-template-columns: minmax(0, 1fr); }
+  /* sul telefono: niente numero di riga né colonna delle risposte (le mancanti restano nello stato) */
+  #ew-elenco :is(th, td):is(:first-child, :nth-child(4)) { display: none; }
 }
 @container contenuto (max-width: 860px) {
   .rp-mod-corpo { grid-template-columns: minmax(0, 1fr); }

@@ -44,6 +44,9 @@ const S = {
   prec: {}, animaRighe: true,
 };
 let esempioPronto = null;
+/** PDF consegnati da un'altra sezione (per esempio «Elaborati da Word»): «Rinomina» li prende appena si apre. */
+let inArrivo = null;
+export function consegnaPdf(file, { da = '' } = {}) { inArrivo = { file, da }; }
 async function preparaEsempio() {
   if (!esempioPronto) esempioPronto = (async () => {
     const { accettati } = await raccogliFile(fileDiEsempio().map(x => new File([x.blob], x.nome, { type: 'application/pdf' })));
@@ -617,6 +620,11 @@ export async function montaRinomina(el, ctx) {
   ricalcola();
   if (S.pdf.attivo && S.file.some(f => !S.testi.has(f.id))) leggiPdf();
   if (S.mod.attivo && S.file.some(f => !S.analisi.has(f.id))) analizzaTutti();
+  if (inArrivo) {
+    const { file, da } = inArrivo; inArrivo = null;
+    await aggiungi(file);
+    ctx.avviso(`${file.length} PDF arrivati${da ? ` da «${da}»` : ''}: ora scegli come chiamarli`);
+  }
   return () => { vivo = false; clearTimeout(timer); clearTimeout(timerMod); clearTimeout(timerAnt); };
 }
 

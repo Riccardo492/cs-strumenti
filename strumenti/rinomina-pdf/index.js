@@ -6,16 +6,27 @@ export default {
   id: 'rinomina-pdf',
   nome: 'Lavori PDF',
   etichetta: 'Lavori PDF',  // nome breve, nella barra in alto
-  descrizione: 'Lavori in blocco sui PDF: rinomina con un modello, un Excel o il testo letto nei documenti.',
+  descrizione: 'Lavori in blocco sui PDF: elaborati anonimi dal Word della piattaforma, rinomina con un modello, un Excel o il testo letto nei documenti.',
   tinta: 350,
   stato: 'pronto',
   icona: icona('<path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13.5 3v4.5H18"/><path d="M18 7.5V11"/><path d="m14 21 .5-2.5 5-5 2 2-5 5z"/>'),
   sezioni: [
+    { id: 'elaborati', nome: 'Elaborati da Word', breve: 'Dal Word della piattaforma, un PDF anonimo per candidato', descrizione: "Dal file Word esportato dalla piattaforma, con tutti i candidati, un documento per ognuno: senza nome, con l'ID elaborato in testa a ogni pagina, domande e risposte in italiano. In Word e in PDF; i PDF possono passare subito a «Rinomina»." },
     { id: 'rinomina', nome: 'Rinomina', breve: 'Scegli i PDF e come chiamarli', descrizione: 'Carichi i PDF, componi il nuovo nome e scarichi lo ZIP con i file rinominati. I file restano nel tuo browser: non vengono inviati da nessuna parte.' },
     { id: 'regole', nome: 'Regole di nome', breve: 'Modelli pronti e salvati', descrizione: 'Modelli di nome pronti, quelli che hai salvato e l\'elenco dei segnaposto.' },
   ],
   siti: [],
   guida: {
+    elaborati: [
+      { titolo: 'Carica il Word della piattaforma', punta: '#ew-file', avanzaQuando: 'word-caricato',
+        testo: "<p>Trascina qui il file Word esportato dalla piattaforma, quello con <b>tutti i candidati</b> uno dopo l'altro.</p><p>Ogni candidato comincia con la riga «External ID: …»: da lì nasce il suo elaborato.</p>" },
+      { titolo: 'Scegli cosa preparare', punta: '#ew-opz',
+        testo: "<p>Word, PDF o tutti e due. Il nome dei file parte da <span class=\"mono\">ID_Elaborato_{ID}</span>, come prima; puoi cambiarlo.</p><p>Il nome del candidato, la prova e la finestra d'esame vengono tolti: resta solo l'ID elaborato.</p>" },
+      { titolo: 'Controlla gli elaborati', punta: '#ew-elenco',
+        testo: "<p>Un elaborato per riga. Clicca una riga per vederla nell'anteprima, pagina per pagina.</p><ul><li><b>ID ripetuto</b> o <b>ID vuoto</b>: il file prende _2 o «senza_ID», invece di sovrascriverne un altro.</li><li><b>Senza risposta</b>: domande che nel file non hanno la riga «Answer».</li></ul>" },
+      { titolo: 'Scarica o passa a «Rinomina»', punta: '#ew-barra', avanzaQuando: ['scaricato', 'passato-a-rinomina'],
+        testo: "<p><b>Scarica ZIP</b>: i Word e, nella cartella PDF, i PDF.</p><p><b>Passa a «Rinomina»</b>: i PDF vanno direttamente alla sezione accanto, dove puoi collegare l'elenco candidati e dare a ogni elaborato il codice o il nome.</p>" },
+    ],
     rinomina: [
       { titolo: 'Carica i PDF', punta: '#rp-file', avanzaQuando: 'file-caricati',
         testo: "<p>Trascina qui i PDF da rinominare. Puoi trascinare anche una <b>cartella intera</b> o un <b>file .zip</b>: i PDF dentro vengono presi tutti, gli altri file ignorati.</p>" },
@@ -40,9 +51,10 @@ export default {
     ],
   },
   /** Carica in anticipo stile e vista, quando il browser è libero: così aprire la funzione è immediato. */
-  precarica() { return Promise.all([caricaCss(new URL('./rinomina.css', import.meta.url)), import('./vista.js')]); },
+  precarica() { return Promise.all([caricaCss(new URL('./rinomina.css', import.meta.url)), import('./vista.js'), import('./vista-elaborati.js')]); },
   async monta(el, ctx) {
     await caricaCss(new URL('./rinomina.css', import.meta.url));
+    if (ctx.sezione === 'elaborati') return (await import('./vista-elaborati.js')).montaElaborati(el, ctx);
     const { montaRinomina, montaRegole } = await import('./vista.js');   // caricata solo quando serve
     if (ctx.sezione === 'regole') return montaRegole(el, ctx);
     return montaRinomina(el, ctx);
