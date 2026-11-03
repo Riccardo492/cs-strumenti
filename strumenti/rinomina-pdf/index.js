@@ -1,11 +1,12 @@
-// Scheda della funzione «Rinomina file PDF».
+// Scheda della funzione «Lavori PDF» (prima «Rinomina file PDF»).
+// L'id resta «rinomina-pdf»: così restano validi i collegamenti, le regole salvate e i numeri della Scrivania.
 import { icona, caricaCss } from '../comune.js';
 
 export default {
   id: 'rinomina-pdf',
-  nome: 'Rinomina file PDF',
-  etichetta: 'Rinomina PDF',  // nome breve, nella barra in alto
-  descrizione: 'Rinomina in blocco i PDF con un modello, un Excel o il testo letto nei documenti.',
+  nome: 'Lavori PDF',
+  etichetta: 'Lavori PDF',  // nome breve, nella barra in alto
+  descrizione: 'Lavori in blocco sui PDF: rinomina con un modello, un Excel o il testo letto nei documenti.',
   tinta: 350,
   stato: 'pronto',
   icona: icona('<path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h4"/><path d="M13.5 3v4.5H18"/><path d="M18 7.5V11"/><path d="m14 21 .5-2.5 5-5 2 2-5 5z"/>'),

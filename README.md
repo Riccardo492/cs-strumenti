@@ -30,7 +30,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 | Abbinamento file per ID | in costruzione |
 | Controllo domande di concorso | in costruzione |
 | Batterie di domande | pronta |
-| Rinomina file PDF | pronta |
+| Lavori PDF (rinomina e altri lavori sui PDF) | pronta |
 
 ## Struttura
 
@@ -172,7 +172,11 @@ Quattro passi, uno per sezione del sottomenu:
 
 File: `stato.js` (dati ed esempio), `ia.js` (richieste a Claude e lettura delle risposte), `doppioni.js`, `versioni.js`, `word.js` (il .docx costruito da zero), `vista.js`, `batterie.css`. L'Excel si scrive con `lib/xlsx.js`, condiviso.
 
-## Rinomina file PDF
+## Lavori PDF
+
+Raccoglie i lavori in blocco sui PDF. La funzione si chiamava «Rinomina file PDF»: l'indirizzo resta `#rinomina-pdf`, così collegamenti e regole salvate continuano a valere.
+
+### Rinomina
 
 Si caricano i PDF (anche una cartella intera o un .zip), si scrive il **modello del nome** e si scarica uno ZIP con i file rinominati: gli originali non vengono toccati. Il nome si compone con:
 
