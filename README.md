@@ -95,7 +95,7 @@ export default {
   tinta: 350,                         // colore della funzione (tonalità 0–360)
   stato: 'pronto',                    // oppure 'in costruzione'
   icona: icona('<path d="…"/>'),      // tracciati SVG su griglia 24×24
-  sezioni: [                          // le sotto-schede sotto le pillole
+  sezioni: [                          // le sezioni, nel menu laterale sotto la funzione aperta
     { id: 'rinomina', nome: 'Rinomina', breve: 'Riga breve nel menu «+ Nuovo»', descrizione: 'Sotto il titolo della sezione' },
   ],  // le sezioni compaiono nel menu laterale sotto la funzione aperta
   siti: [                             // siti esterni collegati (facoltativo)
