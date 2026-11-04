@@ -1,9 +1,9 @@
-// Elenco delle funzioni mostrate nel menu circolare, nell'ordine in senso orario partendo dall'alto.
+// Elenco delle funzioni mostrate nel menu laterale (prima le pronte, poi quelle in arrivo).
 // Per aggiungere una funzione: crea la cartella strumenti/<nome>/ con il suo index.js e aggiungila qui.
 //
 // Ogni funzione si carica per conto suo: se una ha un errore, il menu mostra le altre
 // e l'errore compare solo nella console del browser. Così si lavora su una funzione senza rischiare le altre.
-const CARTELLE = ['ricevute', 'abbinamento', 'controllo-domande', 'batterie-domande', 'rinomina-pdf'];
+const CARTELLE = ['ricevute', 'abbinamento', 'controllo-domande', 'batterie-domande', 'rinomina-pdf', 'nuova-funzione'];
 
 const caricate = await Promise.allSettled(CARTELLE.map(c => import(`./${c}/index.js`)));
 caricate.forEach((r, i) => {

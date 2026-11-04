@@ -1,8 +1,8 @@
 /* Stile «vetro»: superfici traslucide che lasciano intravedere, sfocato, lo sfondo colorato e la mappa.
-   Si attiva con data-stile="vetro" su <html> (interruttore in testata, js/stile.js); senza, resta lo stile classico.
+   Si attiva con data-stile="vetro" su <html> (interruttore nel menu, js/stile.js); senza, resta lo stile classico.
 
    Regole per non appesantire la scheda video:
-   - solo le superfici principali (testata, schede, pannelli) sfocano ciò che hanno dietro;
+   - solo le superfici principali (menu laterale, schede, pannelli) sfocano ciò che hanno dietro;
    - quello che sta dentro una superficie è semi-trasparente ma non sfoca (dietro c'è già il vetro);
    - gli elenchi lunghi stanno su un'unica lastra di vetro, non una per riga.
 
@@ -95,7 +95,7 @@
 @media (max-width: 640px) { :root[data-stile="vetro"] .sfondo-logo { width: 120vw; right: -30vw; bottom: -8vh; } }
 
 /* ---------- lastre di vetro ---------- */
-:where(:root[data-stile="vetro"]) :where(.card, .barra, .assistente, .testata, .percorso-box, .sc-scheda, .sc-pannello) {
+:where(:root[data-stile="vetro"]) :where(.card, .barra, .assistente, .percorso-box, .sc-scheda, .sc-pannello) {
   -webkit-backdrop-filter: var(--sfoca); backdrop-filter: var(--sfoca);
 }
 :where(:root[data-stile="vetro"]) :is(.card, .barra, .assistente, .percorso-box, .sc-scheda, .sc-pannello) {
@@ -125,35 +125,21 @@
 :root[data-stile="vetro"] .bt-esempio { border-style: solid; background-color: hsl(var(--h) 70% 70% / .14); }
 :root[data-stile="vetro"] .ic-cantiere { background-color: var(--warn-soft); }
 
-/* ---------- testata: barra di vetro che resta in alto ---------- */
-:where(:root[data-stile="vetro"]) .testata {
-  margin-top: 10px; padding: 8px 10px 0 14px; border-radius: 22px;
-  background: var(--surface); border: 1px solid var(--vetro-bordo); box-shadow: var(--shadow), var(--vetro-luce);
+/* ---------- menu laterale: un pannello di vetro ---------- */
+:where(:root[data-stile="vetro"]) .laterale {
+  background: var(--surface); border-color: var(--vetro-bordo); border-radius: 22px; box-shadow: var(--shadow), var(--vetro-luce);
+  -webkit-backdrop-filter: var(--sfoca); backdrop-filter: var(--sfoca);
 }
-:where(:root[data-stile="vetro"]) .barra-bassa { margin-top: 8px; border-top-color: var(--line); }
-:where(:root[data-stile="vetro"]) .barra-bassa:has(.schede:empty) { min-height: 38px; }
-@media (min-width: 721px) {
-  :where(:root[data-stile="vetro"]) .testata { position: sticky; top: 10px; z-index: 25; }
-  /* Velo: una copia dello sfondo (colori e simbolo C&S) che sta sotto la testata e sopra il contenuto.
-     Il contenuto che scorre verso l'alto svanisce poco prima della testata e non si vede mai dietro di lei,
-     nemmeno dove il browser non sfoca. --testata-h è l'altezza della testata (js/app.js). */
-  :root[data-stile="vetro"] .velo {
-    display: block; position: fixed; inset: 0; z-index: 24; pointer-events: none; overflow: hidden;
-    background: var(--aurora), var(--fondo);
-    -webkit-mask-image: linear-gradient(#000 calc(10px + var(--testata-h, 150px)), transparent calc(34px + var(--testata-h, 150px)));
-    mask-image: linear-gradient(#000 calc(10px + var(--testata-h, 150px)), transparent calc(34px + var(--testata-h, 150px)));
-  }
-  :root[data-stile="vetro"] { --sopra: calc(var(--testata-h, 150px) + 28px); }
-  :where(:root[data-stile="vetro"]) :is(.guida-punto, .sc-dafare) { scroll-margin-top: var(--sopra); }
-}
-.velo { display: none; }
+@media (max-width: 900px) { :where(:root[data-stile="vetro"]) .laterale { background: linear-gradient(var(--vetro-solido), var(--vetro-solido)), var(--fondo); border-radius: 0 22px 22px 0; } }
 :where(:root[data-stile="vetro"]) .pagina { padding-top: 0; }
-/* dentro la testata (che sfoca già) le superfici sono solo velate */
-:where(:root[data-stile="vetro"]) .pillole { background: var(--bg); border-color: var(--line); }
+/* dentro il menu (che sfoca già) le superfici sono solo velate */
+:where(:root[data-stile="vetro"]) .voce-attiva { background: hsl(var(--h, 172) 70% 70% / .2); border-color: hsl(var(--h, 172) 60% 60% / .38); }
+:where(:root[data-stile="vetro"]) .voce-ico { background: hsl(var(--h, 172) 70% 70% / .2); }
+:where(:root[data-stile="vetro"]) .voce[aria-current] .voce-ico { background: hsl(var(--h, 172) var(--tinta-s) var(--tinta-ink-l)); }
 :where(:root[data-stile="vetro"]) .tema { background: var(--bg); border-color: var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
 :where(:root[data-stile="vetro"]) .tema-cursore { background: var(--vetro-solido); border-color: var(--vetro-bordo); }
-:where(:root[data-stile="vetro"]) .campanella { background: var(--bg); }
-:where(:root[data-stile="vetro"]) .menu-pop { border-color: var(--vetro-bordo); border-radius: 18px; }
+:where(:root[data-stile="vetro"]) :is(.lat-apri, .lat-chiudi) { background: var(--vetro-btn); border-color: var(--vetro-btn-bordo); }
+:where(:root[data-stile="vetro"]) .menu-pop { border-color: var(--vetro-bordo); border-radius: 18px; background: linear-gradient(var(--pieno), var(--pieno)), var(--fondo); }   /* pieno davvero: sopra il contenuto non deve trasparire niente */
 
 /* ---------- comandi ---------- */
 :where(:root[data-stile="vetro"]) .btn { background: var(--vetro-btn); border-color: var(--vetro-btn-bordo); box-shadow: var(--vetro-luce); border-radius: 12px; }
@@ -187,7 +173,6 @@
 }
 
 /* ---------- interruttore dello stile ---------- */
-.testata-azioni { display: flex; align-items: center; gap: 8px; }
 .stile-btn { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--muted); cursor: pointer; transition: color .25s, border-color .25s, background .25s; }
 .stile-btn:hover { color: var(--ink); border-color: var(--accent); }
 .stile-btn[aria-pressed="true"] { color: var(--accent); background: var(--bg); border-color: var(--vetro-bordo, var(--line)); }

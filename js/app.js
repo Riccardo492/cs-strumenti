@@ -1,9 +1,9 @@
 // Avvio della pagina e navigazione.
 // Indirizzi: "#" → Scrivania;  "#ricevute" → prima sezione della funzione;  "#ricevute.modello" → sezione precisa.
 //
-// Struttura (come una dashboard): in alto le «pillole» delle funzioni con la pillola attiva che scorre,
-// sotto il percorso e le sotto-schede delle sezioni con una linea che scorre; al centro la vista.
-// I cambi di vista passano con le View Transitions del browser: titolo, pillola, linea e icona della funzione
+// Struttura (come una dashboard): a sinistra il menu con le funzioni (un riquadro tenue scorre sotto quella aperta)
+// e, sotto la funzione aperta, le sue sezioni con una linea che scorre; a destra la vista.
+// I cambi di vista passano con le View Transitions del browser: titolo, descrizione e icona della funzione
 // si trasformano da una vista all'altra invece di sparire e ricomparire.
 import STRUMENTI from '../strumenti/elenco.js';
 import { attivaMicroInterazioni } from './vivo.js';
@@ -20,8 +20,8 @@ import { escHtml, pad2 } from '../lib/formati.js';
 import { registra } from '../lib/attivita.js';
 
 const $ = s => document.querySelector(s);
-const vista = $('#vista'), pillole = $('#pillole'), schede = $('#schede'), briciole = $('#briciole');
-const ORDINE = [...STRUMENTI.filter(s => s.stato === 'pronto'), ...STRUMENTI.filter(s => s.stato !== 'pronto')];   // pillole: prima le funzioni pronte
+const vista = $('#vista'), menu = $('#pillole');
+const ORDINE = [...STRUMENTI.filter(s => s.stato === 'pronto'), ...STRUMENTI.filter(s => s.stato !== 'pronto')];   // nel menu: prima le funzioni pronte
 const assistente = creaAssistente();
 const etichetta = s => s.etichetta || s.nome.split(' ')[0];
 const ICONA_GUIDA = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M6.3 6.2a1.8 1.8 0 1 1 2.4 1.7c-.5.2-.7.6-.7 1v.4M8 11.3h.01"/></svg>';
@@ -35,68 +35,75 @@ attivaMicroInterazioni();
 montaInterruttoreTema($('#tema'), { cambiato: ({ x, y }) => campo.onda(x, y, .7) });
 montaInterruttoreStile($('#stile'));
 
-/* ====================== testata ====================== */
-// Le pillole sono disegnate due volte: sotto quelle normali, sopra una copia «accesa» (testo chiaro su fondo pieno)
-// ritagliata sulla pillola scelta. Il ritaglio scorre da una pillola all'altra, così fondo e testo si muovono insieme.
-const pillola = (s, tag) => {
-  const id = s ? s.id : '', nome = s ? etichetta(s) : 'Scrivania';
-  const attr = s ? ` data-id="${s.id}" style="--h:${s.tinta}"` : ' data-id=""';
-  const cls = `pillola${s && s.stato !== 'pronto' ? ' in-arrivo' : ''}`;
-  return tag === 'a'
-    ? `<a class="${cls}" href="#${id}"${attr} title="${escHtml(s ? s.nome + (s.stato === 'pronto' ? '' : ` (${s.stato})`) : 'Scrivania')}">${escHtml(nome)}<span class="pillola-n" hidden></span></a>`
-    : `<span class="${cls}"${attr}>${escHtml(nome)}<span class="pillola-n" hidden></span></span>`;
-};
-pillole.innerHTML = [null, ...ORDINE].map(s => pillola(s, 'a')).join('') +
-  `<span class="pillole-luce" aria-hidden="true">${[null, ...ORDINE].map(s => pillola(s, 'span')).join('')}</span>`;
+/* ====================== menu laterale ====================== */
+const ICONA_SCRIVANIA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="8" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"/><rect x="3.5" y="14.5" width="7" height="6" rx="1.5"/></svg>';
+const voce = s => `<div class="gruppo" data-id="${s ? s.id : ''}"${s ? ` style="--h:${s.tinta}"` : ''}>
+    <a class="voce${s && s.stato !== 'pronto' ? ' in-arrivo' : ''}" href="#${s ? s.id : ''}" data-id="${s ? s.id : ''}" title="${escHtml(s ? s.nome + (s.stato === 'pronto' ? '' : ` (${s.stato})`) : 'Scrivania')}">
+      <span class="voce-ico">${s ? s.icona : ICONA_SCRIVANIA}</span><span class="voce-nome">${escHtml(s ? etichetta(s) : 'Scrivania')}</span><span class="pillola-n" hidden></span>
+    </a>
+  </div>`;
+const pronte = ORDINE.filter(s => s.stato === 'pronto'), inArrivo = ORDINE.filter(s => s.stato !== 'pronto');
+menu.innerHTML = '<span class="voce-attiva" aria-hidden="true"></span>' + voce(null) +
+  '<p class="etichetta-menu">Funzioni</p>' + pronte.map(voce).join('') +
+  (inArrivo.length ? '<p class="etichetta-menu">In arrivo</p>' + inArrivo.map(voce).join('') : '');
+const quandoPronto = el => { if (!el.classList.contains('pronte')) requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('pronte'))); };
 
-/** La pillola accesa scorre fin sotto la voce scelta e ne prende il colore. */
+/** Le sezioni della funzione aperta, sotto la sua voce; la linea scorre accanto a quella scelta. */
+function disegnaSezioni() {
+  const s = attuale.s;
+  menu.querySelectorAll('.gruppo').forEach(g => { if (g.dataset.id !== (s?.id || '') || !s) g.querySelector('.sezioni')?.remove(); });
+  if (!s) return;
+  const g = menu.querySelector(`.gruppo[data-id="${s.id}"]`);
+  if (!g) return;
+  let box = g.querySelector('.sezioni');
+  if (!box) {
+    box = document.createElement('nav');
+    box.className = 'sezioni'; box.setAttribute('aria-label', `Sezioni di ${s.nome}`);
+    box.innerHTML = '<span class="linea-sez" aria-hidden="true"></span>' + s.sezioni.map((x, i) => `<a class="sez" href="#${s.id}.${x.id}" data-sez="${x.id}" style="--i:${i}">${escHtml(x.nome)}</a>`).join('');
+    g.appendChild(box);
+  }
+  const a = box.querySelector(`.sez[data-sez="${attuale.sezione}"]`), l = box.querySelector('.linea-sez');
+  box.querySelectorAll('.sez').forEach(x => x === a ? x.setAttribute('aria-current', 'page') : x.removeAttribute('aria-current'));
+  if (a) { l.style.setProperty('--y', a.offsetTop + 'px'); l.style.setProperty('--hh', a.offsetHeight + 'px'); }
+  quandoPronto(box);
+}
+
+/** Il riquadro della funzione aperta scorre fin sotto la sua voce e ne prende il colore. */
 function muoviPillola() {
   const id = attuale.s?.id || '';
-  const a = pillole.querySelector(`a.pillola[data-id="${id}"]`);
-  pillole.querySelectorAll('a.pillola').forEach(p => p === a ? p.setAttribute('aria-current', 'page') : p.removeAttribute('aria-current'));
-  if (!a || !a.offsetWidth) return;
-  pillole.style.setProperty('--x', a.offsetLeft + 'px'); pillole.style.setProperty('--w', a.offsetWidth + 'px');
-  if (attuale.s) pillole.style.setProperty('--h', attuale.s.tinta); else pillole.style.removeProperty('--h');
-  pillole.classList.toggle('di-funzione', !!attuale.s);
-  if (a.offsetLeft < pillole.scrollLeft || a.offsetLeft + a.offsetWidth > pillole.scrollLeft + pillole.clientWidth)
-    pillole.scrollTo({ left: a.offsetLeft - 24, behavior: riduciMovimento() || primoGiro ? 'auto' : 'smooth' });
-  if (!pillole.classList.contains('pronte')) requestAnimationFrame(() => requestAnimationFrame(() => pillole.classList.add('pronte')));
+  disegnaSezioni();
+  const a = menu.querySelector(`a.voce[data-id="${id}"]`), ind = menu.querySelector('.voce-attiva');
+  menu.querySelectorAll('a.voce').forEach(p => p === a ? p.setAttribute('aria-current', 'page') : p.removeAttribute('aria-current'));
+  if (!a || !a.offsetHeight) return;
+  ind.style.setProperty('--y', a.offsetTop + 'px'); ind.style.setProperty('--hh', a.offsetHeight + 'px');
+  if (attuale.s) ind.style.setProperty('--h', attuale.s.tinta); else ind.style.removeProperty('--h');
+  if (a.offsetTop < menu.scrollTop || a.offsetTop + a.offsetHeight > menu.scrollTop + menu.clientHeight) menu.scrollTo({ top: a.offsetTop - 40, behavior: riduciMovimento() || primoGiro ? 'auto' : 'smooth' });
+  quandoPronto(menu);
 }
+window.addEventListener('resize', () => muoviPillola());
 
-/** Sotto-schede della funzione aperta, con la linea che scorre sotto quella attiva. */
-function disegnaSchede() {
-  const s = attuale.s;
-  if (!s) { schede.innerHTML = ''; delete schede.dataset.id; return; }
-  if (schede.dataset.id !== s.id) {
-    schede.dataset.id = s.id;
-    schede.classList.remove('pronte');
-    schede.innerHTML = '<span class="linea-attiva" aria-hidden="true"></span>' + s.sezioni.map(x => `<a class="scheda" href="#${s.id}.${x.id}" data-sez="${x.id}">${escHtml(x.nome)}</a>`).join('');
-    requestAnimationFrame(() => requestAnimationFrame(() => schede.classList.add('pronte')));
-  }
-  const a = schede.querySelector(`.scheda[data-sez="${attuale.sezione}"]`), l = schede.querySelector('.linea-attiva');
-  schede.querySelectorAll('.scheda').forEach(x => x === a ? x.setAttribute('aria-current', 'page') : x.removeAttribute('aria-current'));
-  if (a) {
-    l.style.setProperty('--x', a.offsetLeft + 'px'); l.style.setProperty('--w', a.offsetWidth + 'px');
-    if (a.offsetLeft < schede.scrollLeft || a.offsetLeft + a.offsetWidth > schede.scrollLeft + schede.clientWidth) schede.scrollTo({ left: a.offsetLeft - 16 });
-  }
+/* sui telefoni il menu si apre sopra la pagina */
+const laterale = $('#laterale'), latVelo = $('#lat-velo'), latApri = $('#lat-apri');
+const menuStretto = window.matchMedia('(max-width: 900px)');
+function apriMenu(apri) {
+  apri = apri && menuStretto.matches;
+  laterale.classList.toggle('aperta', apri); latVelo.hidden = !apri;
+  document.documentElement.classList.toggle('menu-aperto', apri);
+  latApri.setAttribute('aria-expanded', String(apri));
+  if (apri) { requestAnimationFrame(muoviPillola); setTimeout(() => (laterale.querySelector('a.voce[aria-current]') || laterale.querySelector('a, button'))?.focus({ preventScroll: true }), 60); }
 }
-function disegnaBriciole() {
-  const s = attuale.s;
-  briciole.innerHTML = s
-    ? `<a href="#">Scrivania</a><span class="sep">/</span><a href="#${s.id}" aria-current="page">${escHtml(etichetta(s))}</a>`
-    : '<span aria-current="page">Scrivania</span>';
-}
-window.addEventListener('resize', () => { muoviPillola(); disegnaSchede(); });
+latApri.addEventListener('click', () => apriMenu(true));
+$('#lat-chiudi').addEventListener('click', () => { apriMenu(false); latApri.focus(); });
+latVelo.addEventListener('click', () => apriMenu(false));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && laterale.classList.contains('aperta') && !document.querySelector('.menu-pop:not([hidden])')) { apriMenu(false); latApri.focus(); } });
+laterale.addEventListener('click', e => { if (e.target.closest('a[href^="#"]') && !e.target.closest('#campanella')) apriMenu(false); });
+menuStretto.addEventListener('change', () => apriMenu(false));
 
 /* «Guidami passo passo»: bottone fisso in basso a destra, resta a portata di clic mentre la pagina scorre;
    sparisce mentre l'assistente è aperto (css/struttura.css) e nelle sezioni senza guida */
 const bottoneGuida = $('#btn-guida');
 bottoneGuida.innerHTML = ICONA_GUIDA + '<span>Guidami passo passo</span>';
 bottoneGuida.addEventListener('click', () => avviaGuida());
-/* altezza della testata: serve al velo che nasconde il contenuto quando scorre sotto di lei (css/vetro.css) */
-const testata = $('.testata');
-const misuraTestata = () => document.documentElement.style.setProperty('--testata-h', testata.offsetHeight + 'px');
-misuraTestata(); new ResizeObserver(misuraTestata).observe(testata);
 
 /* orologio, numerini delle cose da fare */
 function orologio() { const d = new Date(); $('#ora').textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
@@ -107,11 +114,10 @@ async function aggiornaNumerini() {
     let n = 0;
     try { n = (await s.promemoria?.() || []).reduce((t, x) => t + (x.n || 0), 0); } catch (e) { /* una funzione non risponde: niente numerino */ }
     tot += n;
-    pillole.querySelectorAll(`.pillola[data-id="${s.id}"] .pillola-n`).forEach(p => { p.hidden = !n; p.textContent = n > 99 ? '99+' : n; });
+    menu.querySelectorAll(`.voce[data-id="${s.id}"] .pillola-n`).forEach(p => { p.hidden = !n; p.textContent = n > 99 ? '99+' : n; });
   }));
-  const b = $('#bollino'); b.hidden = !tot; b.textContent = tot > 99 ? '99+' : tot;
+  ['#bollino', '#bollino-mobile'].forEach(k => { const b = $(k); b.hidden = !tot; b.textContent = tot > 99 ? '99+' : tot; });
   $('#campanella').title = tot ? `${tot} ${tot === 1 ? 'cosa' : 'cose'} da fare` : 'Niente da fare';
-  muoviPillola();   // un numerino in più o in meno cambia la larghezza della pillola
 }
 /* la campanella porta all'elenco «Da fare» della Scrivania */
 let aDaFare = false;
@@ -124,6 +130,7 @@ function mostraDaFare() {
 }
 $('#campanella').addEventListener('click', e => {
   e.preventDefault();
+  apriMenu(false);
   if (!attuale.s && mostraDaFare()) return;
   aDaFare = true; location.hash = '';
 });
@@ -145,26 +152,27 @@ function popover(btn, pop, apri) {
 const menuNuovo = $('#menu-nuovo');
 menuNuovo.innerHTML = STRUMENTI.filter(s => s.stato === 'pronto').map(s => `<a role="menuitem" href="#${s.id}" style="--h:${s.tinta}"><span class="mn-icona">${s.icona}</span><span><b>${escHtml(s.nome)}</b><small>${escHtml(s.sezioni[0].breve || '')}</small></span></a>`).join('');
 const chiudiNuovo = popover($('#nuovo'), menuNuovo, () => menuNuovo.querySelector('a')?.focus());
-menuNuovo.addEventListener('click', e => { if (e.target.closest('a')) chiudiNuovo(); });
+menuNuovo.addEventListener('click', e => { if (e.target.closest('a')) { chiudiNuovo(); apriMenu(false); } });
 
 const NOME = 'cs.nome';
 function aggiornaAvatar() {
   const n = nomeUtente();
   $('#avatar').textContent = n ? n.split(/\s+/).map(p => p[0]).join('').slice(0, 2).toUpperCase() : '?';
-  $('#avatar').title = n ? `Ciao ${n}: clicca per cambiare nome` : 'Come ti chiami?';
+  $('#profilo-chi').textContent = n || 'Come ti chiami?';
+  $('#profilo-btn').title = n ? `Ciao ${n}: clicca per cambiare nome` : 'Scrivi il tuo nome per il saluto';
 }
 aggiornaAvatar();
 const campoNome = $('#profilo-nome');
-const chiudiProfilo = popover($('#avatar'), $('#profilo-pop'), () => { campoNome.value = nomeUtente(); campoNome.focus(); });
+const chiudiProfilo = popover($('#profilo-btn'), $('#profilo-pop'), () => { campoNome.value = nomeUtente(); campoNome.focus(); });
 campoNome.addEventListener('input', () => {
   try { localStorage.setItem(NOME, campoNome.value.trim()); } catch (e) { /* non salvato */ }
   aggiornaAvatar(); window.dispatchEvent(new CustomEvent('cs:nome'));
 });
-campoNome.addEventListener('keydown', e => { if (e.key === 'Enter') { chiudiProfilo(); $('#avatar').focus(); } });
-window.addEventListener('cs:chiedi-nome', () => $('#avatar').click());
+campoNome.addEventListener('keydown', e => { if (e.key === 'Enter') { chiudiProfilo(); $('#profilo-btn').focus(); } });
+window.addEventListener('cs:chiedi-nome', () => { if (menuStretto.matches) apriMenu(true); setTimeout(() => $('#profilo-btn').click(), menuStretto.matches ? 360 : 0); });
 
 /* un clic sullo sfondo (non su un comando o una scheda) manda un'onda sulla mappa, nello stile classico */
-const NON_SFONDO = 'a, button, input, select, textarea, label, summary, .card, .barra, .assistente, .tabella, .avviso, .tema, .testata, .sc-pannello, .pagina-testa, .percorso-box';
+const NON_SFONDO = 'a, button, input, select, textarea, label, summary, .card, .barra, .assistente, .tabella, .avviso, .tema, .laterale, .barra-mobile, .sc-pannello, .pagina-testa, .percorso-box';
 document.addEventListener('pointerdown', e => {
   if (e.button === 0 && e.target instanceof Element && !e.target.closest(NON_SFONDO)) campo.onda(e.clientX, e.clientY, .45);
 });
@@ -222,7 +230,7 @@ async function naviga() {
   } else {
     const sezione = s.sezioni.some(x => x.id === sez) ? sez : s.sezioni[0].id;
     if (attuale.s !== s || attuale.sezione !== sezione) {
-      // il contenuto scorre nel verso in cui ci si sposta: tra le sezioni (sotto-schede) o tra le funzioni (pillole)
+      // il contenuto scorre nel verso in cui ci si sposta: tra le sezioni o tra le funzioni del menu
       const stessa = attuale.s === s;
       const avanti = stessa
         ? s.sezioni.findIndex(x => x.id === sezione) > s.sezioni.findIndex(x => x.id === attuale.sezione)
@@ -249,7 +257,7 @@ async function mostraScrivania() {
   bottoneGuida.hidden = true;
   campo.modalita('menu');
   document.title = 'Scrivania · CS Strumenti';
-  muoviPillola(); disegnaSchede(); disegnaBriciole();
+  muoviPillola();
   attuale.smonta = await montaScrivania(vista, { strumenti: STRUMENTI, primoGiro });
   animaEntrata(blocchi(vista.querySelector('.sc-corpo')));
   if (aDaFare) { aDaFare = false; setTimeout(mostraDaFare, 380); }
@@ -284,7 +292,7 @@ async function mostraFunzione(s, sezione) {
   document.title = `${sez.nome} · ${s.nome} · CS Strumenti`;
   vista.querySelector('.pt-titolo').textContent = sez.nome;
   vista.querySelector('.pt-desc').textContent = sez.descrizione || '';
-  muoviPillola(); disegnaSchede(); disegnaBriciole();
+  muoviPillola();
   const passi = s.guida && s.guida[sezione];
   bottoneGuida.hidden = !(passi && passi.length);
   const contenuto = $('#contenuto');

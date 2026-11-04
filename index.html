@@ -25,41 +25,55 @@
 <canvas id="campo" class="campo" aria-hidden="true"></canvas>
 <div class="sfondo-logo" aria-hidden="true"></div>
 <div class="pagina">
-  <div class="velo" aria-hidden="true"><div class="sfondo-logo"></div></div>
-  <header class="testata">
-    <div class="barra-alta">
+  <!-- sui telefoni: barra con il bottone del menu (il menu laterale si apre sopra la pagina) -->
+  <header class="barra-mobile">
+    <button class="lat-apri" id="lat-apri" type="button" aria-controls="laterale" aria-expanded="false" aria-label="Apri il menu">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h13"/></svg>
+      <span class="bollino" id="bollino-mobile" hidden></span>
+    </button>
+    <a class="marchio" href="#" aria-label="CS Strumenti, vai alla scrivania"><span class="marchio-segno logo-cs" aria-hidden="true"></span><span class="marchio-nome">CS Strumenti</span></a>
+  </header>
+
+  <aside class="laterale" id="laterale" aria-label="Menu">
+    <div class="lat-testa">
       <a class="marchio" href="#" aria-label="CS Strumenti, vai alla scrivania">
         <span class="marchio-segno logo-cs" aria-hidden="true"></span>
         <span class="marchio-nome">CS Strumenti</span>
       </a>
-      <nav class="pillole" id="pillole" aria-label="Funzioni"></nav>
-      <div class="testata-azioni">
-        <div class="nuovo">
-          <button class="btn primary piccolo" id="nuovo" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Nuovo: apri una funzione" title="Apri una funzione"><span aria-hidden="true">+</span><span class="nuovo-testo" aria-hidden="true">Nuovo</span></button>
-          <div class="menu-pop" id="menu-nuovo" role="menu" hidden></div>
-        </div>
+      <button class="lat-chiudi" id="lat-chiudi" type="button" aria-label="Chiudi il menu">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15"/></svg>
+      </button>
+    </div>
+    <div class="nuovo">
+      <button class="btn primary" id="nuovo" type="button" aria-haspopup="menu" aria-expanded="false" title="Apri una funzione"><span aria-hidden="true">+</span><span>Nuovo</span></button>
+      <div class="menu-pop" id="menu-nuovo" role="menu" hidden></div>
+    </div>
+    <nav class="menu-funzioni" id="pillole" aria-label="Funzioni"></nav>
+    <div class="lat-piede">
+      <a class="campanella" id="campanella" href="#" title="Da fare">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.6 5.3 1.6 5.3H3.4S5 12.5 5 8.5zM8.2 16.6a2 2 0 0 0 3.6 0"/></svg>
+        <span>Da fare</span>
+        <span class="bollino" id="bollino" hidden></span>
+      </a>
+      <div class="lat-comandi">
         <button class="stile-btn" id="stile" type="button" aria-label="Stile vetro"></button>
         <div class="tema" id="tema" role="group" aria-label="Tema dei colori"></div>
-        <a class="campanella" id="campanella" href="#" title="Da fare" aria-label="Da fare">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8.5a5 5 0 0 1 10 0c0 4 1.6 5.3 1.6 5.3H3.4S5 12.5 5 8.5zM8.2 16.6a2 2 0 0 0 3.6 0"/></svg>
-          <span class="bollino" id="bollino" hidden></span>
-        </a>
-        <div class="profilo">
-          <button class="avatar" id="avatar" type="button" aria-haspopup="dialog" aria-expanded="false" title="Il tuo nome">?</button>
-          <div class="menu-pop profilo-pop" id="profilo-pop" hidden>
-            <label for="profilo-nome">Come ti chiami?</label>
-            <input id="profilo-nome" autocomplete="given-name" placeholder="es. Riccardo" maxlength="40">
-            <small>Serve solo per salutarti: resta in questo browser.</small>
-          </div>
+      </div>
+      <div class="profilo">
+        <button class="profilo-btn" id="profilo-btn" type="button" aria-haspopup="dialog" aria-expanded="false">
+          <span class="avatar" id="avatar" aria-hidden="true">?</span>
+          <span class="profilo-testo"><b id="profilo-chi">Come ti chiami?</b><small>il nome serve per il saluto</small></span>
+        </button>
+        <div class="menu-pop profilo-pop" id="profilo-pop" hidden>
+          <label for="profilo-nome">Come ti chiami?</label>
+          <input id="profilo-nome" autocomplete="given-name" placeholder="es. Riccardo" maxlength="40">
+          <small>Serve solo per salutarti: resta in questo browser.</small>
         </div>
       </div>
+      <span class="stato-banco" title="I file e i dati non vengono inviati a nessun server"><span class="pallino" aria-hidden="true"></span><span>Tutto resta in questo browser</span><time id="ora"></time></span>
     </div>
-    <div class="barra-bassa">
-      <nav class="briciole" id="briciole" aria-label="Percorso"></nav>
-      <nav class="schede" id="schede" aria-label="Sezioni"></nav>
-      <span class="stato-banco" title="I file e i dati non vengono inviati a nessun server"><span class="pallino" aria-hidden="true"></span><span class="dove">Tutto resta in questo browser ·</span><time id="ora"></time></span>
-    </div>
-  </header>
+  </aside>
+  <div class="lat-velo" id="lat-velo" hidden></div>
 
   <main id="app" class="app">
     <div id="vista" class="vista"></div>

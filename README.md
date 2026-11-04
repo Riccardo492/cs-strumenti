@@ -4,7 +4,7 @@ Raccolta di strumenti per la gestione dei concorsi, in un'unica pagina web.
 
 La pagina è fatta come una dashboard.
 
-- **In alto** ci sono le funzioni, come pillole: la pillola accesa scorre da una voce all'altra e prende il colore della funzione. Accanto ci sono «+ Nuovo» (apre una funzione), lo stile, il tema, la campanella con le cose da fare e il cerchio con le iniziali (il nome serve solo per il saluto). Sotto ci sono le sezioni della funzione aperta, con una linea che scorre sotto quella scelta.
+- **A sinistra** c'è il menu, fermo mentre la pagina scorre: «+ Nuovo», le funzioni (prima quelle pronte, poi quelle in arrivo) e, sotto la funzione aperta, le sue sezioni. Un riquadro tenue scorre fin sotto la funzione aperta e ne prende il colore; una linea scorre accanto alla sezione scelta. In fondo ci sono «Da fare» (con il numero delle cose in sospeso), lo stile, il tema e il nome, che serve solo per il saluto. Sui telefoni il menu si apre sopra la pagina con il bottone ☰.
 - **La Scrivania** è la pagina iniziale:
   - il saluto e una frase che riassume la situazione;
   - quattro numeri del mese: ricevute, compensi netti, PDF rinominati, domande preparate. Ognuno ha un piccolo grafico delle ultime settimane;
@@ -31,6 +31,7 @@ Tutto gira nel browser: i file che caricate (Excel, PDF…) non vengono inviati 
 | Controllo domande di concorso | in costruzione |
 | Batterie di domande | pronta |
 | Lavori PDF (rinomina e altri lavori sui PDF) | pronta |
+| Nuova funzione (posto pronto, da definire) | in costruzione |
 
 ## Struttura
 
@@ -40,12 +41,12 @@ assets/                     logo C&S (usato come maschera: prende il colore del 
 css/
   tokens.css                colori, caratteri, misure (tema chiaro e scuro, intensità dello sfondo --campo-*)
   base.css                  bottoni, campi, schede, etichette, tabelle
-  struttura.css             testata con le pillole, intestazione della pagina, percorso a tappe, passaggi tra le viste
+  struttura.css             menu laterale, intestazione della pagina, percorso a tappe, passaggi tra le viste
   scrivania.css             la Scrivania
   assistente.css            pannello dell'assistente
   vetro.css                 stile vetro (si attiva con data-stile="vetro" su <html>)
 js/
-  app.js                    avvio, testata e navigazione (# = Scrivania, #funzione.sezione)
+  app.js                    avvio, menu laterale e navigazione (# = Scrivania, #funzione.sezione)
   scrivania.js              la Scrivania: saluto, numeri del mese, grafici, da fare
   percorso.js               percorso a tappe con l'aeroplanino
   assistente.js             guida passo passo
@@ -65,7 +66,7 @@ lib/                        utilità condivise da tutte le funzioni
   xlsx.js                   scrittura di file Excel (.xlsx)
   attivita.js               registro delle attività di questo browser (numeri della Scrivania)
 strumenti/
-  elenco.js                 l'elenco delle funzioni (pillole in alto)
+  elenco.js                 l'elenco delle funzioni (menu laterale)
   comune.js                 icone, caricamento CSS, pagina «in costruzione»
   ricevute/                 una cartella per funzione
     index.js                la scheda della funzione
@@ -89,14 +90,14 @@ import { icona, caricaCss } from '../comune.js';
 export default {
   id: 'rinomina-pdf',                 // compare nell'indirizzo: #rinomina-pdf
   nome: 'Rinomina file PDF',
-  etichetta: 'Rinomina PDF',          // nome corto sulla pillola
+  etichetta: 'Rinomina PDF',          // nome corto nel menu laterale
   descrizione: 'Testo breve che descrive la funzione.',
   tinta: 350,                         // colore della funzione (tonalità 0–360)
   stato: 'pronto',                    // oppure 'in costruzione'
   icona: icona('<path d="…"/>'),      // tracciati SVG su griglia 24×24
   sezioni: [                          // le sotto-schede sotto le pillole
     { id: 'rinomina', nome: 'Rinomina', breve: 'Riga breve nel menu «+ Nuovo»', descrizione: 'Sotto il titolo della sezione' },
-  ],
+  ],  // le sezioni compaiono nel menu laterale sotto la funzione aperta
   siti: [                             // siti esterni collegati (facoltativo)
     { nome: 'Nome del sito', url: 'https://…', descrizione: 'A cosa serve' },
   ],
@@ -122,7 +123,7 @@ export default {
 };
 ```
 
-2. Aggiungila a `strumenti/elenco.js`: compare da sola tra le pillole e nel menu «+ Nuovo».
+2. Aggiungila a `strumenti/elenco.js`: compare da sola nel menu laterale e nel menu «+ Nuovo». C'è già un posto pronto, `strumenti/nuova-funzione/`, da rinominare e riempire.
 
 ### Ogni funzione è isolata dalle altre
 
@@ -131,7 +132,7 @@ Così si può lavorare su una funzione senza rischiare le altre:
 - **Codice:** ogni funzione vive nella sua cartella `strumenti/<nome>/` e non importa niente dalle altre funzioni, solo da `lib/` e `strumenti/comune.js`.
 - **Stili:** gli stili di una funzione hanno un prefisso tutto suo (`ric-`, `rp-`…) e si caricano solo quando la funzione si apre.
 - **Caricamento:** `index.js` contiene solo la scheda (nome, sezioni, guida); il resto si carica con `import()` dentro `monta`. Se una funzione ha un errore:
-  - nel caricamento della scheda, la sua pillola non compare e le altre funzionano;
+  - nel caricamento della scheda, la sua voce non compare nel menu e le altre funzionano;
   - nella sua sezione, solo quella sezione mostra un messaggio di errore.
 - **Parti in comune:** `lib/`, `strumenti/comune.js`, `css/` e `js/` sono usate da tutte le funzioni. Quando si cambiano vanno provate tutte.
 - **Pubblicazione:** il sito pubblica solo il ramo `main`. Una funzione nuova si sviluppa su un ramo a parte (per esempio `abbinamento`) e si unisce a `main` quando è pronta: fino ad allora i colleghi non vedono niente.

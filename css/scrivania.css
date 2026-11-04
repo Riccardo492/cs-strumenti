@@ -7,7 +7,7 @@
 .sc-kpi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .sc-scheda {
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "testa testa" "valore spark" "nota nota";
-  align-items: end; gap: 4px 10px; padding: 16px 16px 14px; min-width: 0; overflow: hidden;
+  align-items: end; gap: 4px 10px; padding: 16px 16px 14px; min-width: 0; overflow: hidden; container-type: inline-size;
   border-radius: 16px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none;
   transition: border-color .25s, box-shadow .3s, translate .35s cubic-bezier(.3, 1.4, .5, 1);
 }
@@ -18,10 +18,10 @@
 .sc-icona { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px;
   background: hsl(var(--h) var(--tinta-s) var(--tinta-fondo-l)); color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); border: 1px solid hsl(var(--h) var(--tinta-s) var(--tinta-bordo-l)); }
 .sc-icona svg { width: 18px; height: 18px; }
-.sc-valore { grid-area: valore; font-size: clamp(28px, 1.3vw + 17px, 36px); font-weight: 700; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sc-valore { grid-area: valore; font-size: clamp(24px, 12.5cqw, 36px); font-weight: 700; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sc-nota { grid-area: nota; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sc-nota.su { color: var(--ok); font-weight: 600; }
-.sc-spark { grid-area: spark; width: 112px; height: 38px; align-self: end; color: hsl(var(--h) var(--grafico-s) var(--grafico-l)); }
+.sc-spark { grid-area: spark; width: min(112px, 36cqw); height: 38px; align-self: end; color: hsl(var(--h) var(--grafico-s) var(--grafico-l)); }
 
 /* ---------- pannelli ---------- */
 .sc-griglia { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(300px, 1fr); gap: 14px; align-items: start; }
@@ -69,9 +69,9 @@
 .sc-arrivo a { color: hsl(var(--h) var(--tinta-s) var(--tinta-ink-l)); font-weight: 600; }
 
 /* ---------- schermi più stretti ---------- */
-@media (max-width: 1180px) { .sc-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 1000px) { .sc-griglia { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 560px) {
+@container vista (max-width: 900px) { .sc-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container vista (max-width: 820px) { .sc-griglia { grid-template-columns: minmax(0, 1fr); } }
+@container vista (max-width: 520px) {
   .sc-kpi { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .sc-scheda { padding: 14px; }
   .sc-scheda-testa { margin-bottom: 6px; }
